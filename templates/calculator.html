@@ -1,0 +1,326 @@
+{% extends "base.html" %}
+{% block content %}
+<head>
+    <style>
+        .highlightY {
+            background-color: rgb(255, 240, 209);
+        }
+        .highlightY0 {
+            background-color: rgb(213, 213, 213);
+        }
+        .highlightY1 {
+            background-color: rgb(192, 192, 192);
+        }
+        .highlightY2 {
+            background-color: rgb(129, 129, 129);
+        }
+    </style>
+    <script defer>
+        $(document).ready(function () {
+            function updateTotals(tableId, totalY0Id, totalY1Id, totalY2Id) {
+                var totalY0 = 0, totalY1 = 0, totalY2 = 0;
+                $(tableId + ' tr:visible').each(function () {
+                    totalY0 += parseFloat($(this).find('td:eq(4)').text()) || 0; // Y0 costs
+                    totalY1 += parseFloat($(this).find('td:eq(5)').text()) || 0; // Y1 costs
+                    totalY2 += parseFloat($(this).find('td:eq(6)').text()) || 0; // Y2 costs
+                });
+                $(totalY0Id).text(totalY0.toFixed(0));
+                $(totalY1Id).text(totalY1.toFixed(0));
+                $(totalY2Id).text(totalY2.toFixed(0));
+            }
+
+            function updateSummary() {
+                var outgoingY0UserA = 0
+                var outgoingY0UserB = 0;
+                var outgoingY1UserA = 0;
+                var outgoingY1UserB = 0;
+                var outgoingY2UserA = 0;
+                var outgoingY2UserB = 0;
+
+                $('#draftResults1 .selectUserA:checked').each(function () {
+                    outgoingY0UserA += parseFloat($(this).closest('tr').find('td:eq(4)').text()) || 0; // Y0 costs
+                    outgoingY1UserA += parseFloat($(this).closest('tr').find('td:eq(5)').text()) || 0; // Y1 costs
+                    outgoingY2UserA += parseFloat($(this).closest('tr').find('td:eq(6)').text()) || 0; // Y2 costs
+                });
+
+
+                $('#draftResults2 .selectUserB:checked').each(function () {
+                    outgoingY0UserB += parseFloat($(this).closest('tr').find('td:eq(4)').text()) || 0; // Y0 costs
+                    outgoingY1UserB += parseFloat($(this).closest('tr').find('td:eq(5)').text()) || 0; // Y1 costs
+                    outgoingY2UserB += parseFloat($(this).closest('tr').find('td:eq(6)').text()) || 0; // Y2 costs
+                });
+
+                var incomingY0UserB = outgoingY0UserA
+                var incomingY0UserA = outgoingY0UserB
+                var incomingY1UserB = outgoingY1UserA
+                var incomingY1UserA = outgoingY1UserB
+                var incomingY2UserB = outgoingY2UserA
+                var incomingY2UserA = outgoingY2UserB
+
+                $('#outgoingY01').text(outgoingY0UserA.toFixed(0));
+                $('#outgoingY11').text(outgoingY1UserA.toFixed(0));
+                $('#outgoingY21').text(outgoingY2UserA.toFixed(0));
+                $('#incomingY01').text(incomingY0UserA.toFixed(0));
+                $('#incomingY11').text(incomingY1UserA.toFixed(0));
+                $('#incomingY21').text(incomingY2UserA.toFixed(0));
+                $('#netY01').text((incomingY0UserA - outgoingY0UserA).toFixed(0));
+                $('#netY11').text((incomingY1UserA - outgoingY1UserA).toFixed(0));
+                $('#netY21').text((incomingY2UserA - outgoingY2UserA).toFixed(0));
+                $('#adjTotalY01').text(($('#totalY01').text() - outgoingY0UserA + incomingY0UserA).toFixed(0));
+                $('#adjTotalY11').text(($('#totalY11').text() - outgoingY1UserA + incomingY1UserA).toFixed(0));
+                $('#adjTotalY21').text(($('#totalY21').text() - outgoingY2UserA + incomingY2UserA).toFixed(0));
+
+
+                $('#outgoingY02').text(outgoingY0UserB.toFixed(0));
+                $('#outgoingY12').text(outgoingY1UserB.toFixed(0));
+                $('#outgoingY22').text(outgoingY2UserB.toFixed(0));
+                $('#incomingY02').text(incomingY0UserB.toFixed(0));
+                $('#incomingY12').text(incomingY1UserB.toFixed(0));
+                $('#incomingY22').text(incomingY2UserB.toFixed(0));
+                $('#netY02').text((incomingY0UserB - outgoingY0UserB).toFixed(0));
+                $('#netY12').text((incomingY1UserB - outgoingY1UserB).toFixed(0));
+                $('#netY22').text((incomingY2UserB - outgoingY2UserB).toFixed(0));
+                $('#adjTotalY02').text(($('#totalY02').text() - outgoingY0UserB + incomingY0UserB).toFixed(0));
+                $('#adjTotalY12').text(($('#totalY12').text() - outgoingY1UserB + incomingY1UserB).toFixed(0));
+                $('#adjTotalY22').text(($('#totalY22').text() - outgoingY2UserB + incomingY2UserB).toFixed(0));
+            }
+
+            $('.selectUserA, .selectUserB').on('change', function () {
+                updateSummary();
+            });
+
+            $('#userFilter1, #userFilter2').on('change', function () {
+                updateSummary();
+            });
+
+            // Function to handle the master checkbox for selecting/deselecting all checkboxes in table 1
+            $('.resetcheckboxA').on('change', function () {
+                var isChecked = $(this).is(':checked');
+                $('#draftResults1 .selectUserA').prop('checked', isChecked);
+                updateSummary(); // Updates summary information based on selection
+            });
+
+            $('.resetcheckboxB').on('change', function () {
+                var isChecked = $(this).is(':checked');
+                $('#draftResults2 .selectUserB').prop('checked', isChecked);
+                updateSummary(); // Updates summary information based on selection
+            });
+
+            // Filter for first table
+            $('#userFilter1').on('change', function () {
+                var userFilter = $(this).val().toLowerCase();
+                $('#draftResults1 tr').each(function () {
+                    var teamName = $(this).find('td:eq(1)').text().toLowerCase();
+                    $(this).toggle(teamName === userFilter || userFilter === "");
+                });
+                updateTotals('#draftResults1', '#totalY01', '#totalY11', '#totalY21');
+            });
+
+            // Filter for second table
+            $('#userFilter2').on('change', function () {
+                var userFilter = $(this).val().toLowerCase();
+                $('#draftResults2 tr').each(function () {
+                    var teamName = $(this).find('td:eq(1)').text().toLowerCase();
+                    $(this).toggle(teamName === userFilter || userFilter === "");
+                });
+                updateTotals('#draftResults2', '#totalY02', '#totalY12', '#totalY22');
+            });
+
+            // Initialize totals on page load
+            $('#userFilter1').trigger('change');
+            $('#userFilter2').trigger('change');
+        });
+    </script>
+</head>
+<body>
+    <div class="container mt-5">
+        <hr>
+        <div class="row mb-3">
+            <nav class="nav-center">
+                <p><a href="/home">Home</a> | <a href="/setcontracts">Contracts</a> | <a
+                        href="/calculator">Calculator</a> | <a href="/logout">Logout</a> </p>
+                <!-- <table>
+                    <tr>
+                        <td><a href="/home">Home</a></td>
+                        <td><a href="/calculator">Calculator</a></td>
+                        <td><a href="/logout">Logout</a></td>
+                    </tr>
+                </table> -->
+            </nav>
+        </div>
+        <hr>
+
+        <div class="row ">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-body">
+                        <h4 style="text-align:center">Trade calculator</h4>
+                        <hr>
+                        <p>Use the checkboxes to select players to trade between two teams. The table below will show the
+                            total cost of players for each year for each team. The trade calculator will show the total
+                            cost of players for each year for each team, the total cost of players for each year for each
+                            team after the trade, and the net change in cost for each year for each team.</p>
+                <!-- <h4 style="text-align:center">Trade calculator</h4> -->
+                <hr>
+
+                <table style="text-align: center;">
+                    <thead>
+                        <tr>
+                            <th></th>
+                            <th colspan="3" style="text-align: center;">Current</th>
+                            <th colspan="3" style="text-align: center;">Y0</th>
+                            <th colspan="3" style="text-align: center;">Y1</th>
+                            <th colspan="3" style="text-align: center;">Y2</th>
+                            <th colspan="3" style="text-align: center;">Adjusted</th>
+                        </tr>
+                        <tr>
+                            <th></th>
+                            <th>Y0</th>
+                            <th>Y1</th>
+                            <th>Y2</th>
+                            <th>Out</th>
+                            <th>Inb</th>
+                            <th>Net</th>
+                            <th>Out</th>
+                            <th>Inb</th>
+                            <th>Net</th>
+                            <th>Out</th>
+                            <th>Inb</th>
+                            <th>Net</th>
+                            <th>Y0</th>
+                            <th>Y1</th>
+                            <th>Y2</th>
+                        </tr>
+
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>User A</td>
+                            <td id="totalY01" class="highlightY">0</td>
+                            <td id="totalY11" class="highlightY">0</td>
+                            <td id="totalY21" class="highlightY">0</td>
+                            <td id="outgoingY01" class="highlightY0">0</td>
+                            <td id="incomingY01" class="highlightY0">0</td>
+                            <td id="netY01" class="highlightY0">0</td>
+                            <td id="outgoingY11" class="highlightY1">0</td>
+                            <td id="incomingY11" class="highlightY1">0</td>
+                            <td id="netY11" class="highlightY1">0</td>
+                            <td id="outgoingY21" class="highlightY2">0</td>
+                            <td id="incomingY21" class="highlightY2">0</td>
+                            <td id="netY21" class="highlightY2">0</td>
+                            <td id="adjTotalY01" class="highlightY">0</td>
+                            <td id="adjTotalY11" class="highlightY">0</td>
+                            <td id="adjTotalY21" class="highlightY">0</td>
+                        </tr>
+                        <tr>
+                            <td>User B</td>
+                            <td id="totalY02" class="highlightY">0</td>
+                            <td id="totalY12" class="highlightY">0</td>
+                            <td id="totalY22" class="highlightY">0</td>
+                            <td id="outgoingY02" class="highlightY0">0</td>
+                            <td id="incomingY02" class="highlightY0">0</td>
+                            <td id="netY02" class="highlightY0">0</td>
+                            <td id="outgoingY12" class="highlightY1">0</td>
+                            <td id="incomingY12" class="highlightY1">0</td>
+                            <td id="netY12" class="highlightY1">0</td>
+                            <td id="outgoingY22" class="highlightY2">0</td>
+                            <td id="incomingY22" class="highlightY2">0</td>
+                            <td id="netY22" class="highlightY2">0</td>
+                            <td id="adjTotalY02" class="highlightY">0</td>
+                            <td id="adjTotalY12" class="highlightY">0</td>
+                            <td id="adjTotalY22" class="highlightY">0</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+            </div>
+        </div>
+        <div class="row">
+            <!-- First table and dropdown -->
+            <div class="col-md-8">
+                <select id="userFilter1" class="form-control mb-3">
+                    <option value="">-- show all --</option>
+                    {% for user in users %}
+                    <option value="{{ user }}" {{ 'selected' if user==current_username }}>{{ user }}</option>
+                    {% endfor %}
+                </select>
+                <table class="table" id="table1">
+                    <thead>
+                        <tr>
+                            <th><input type="checkbox" class="resetcheckboxA"></th>
+                            <th>team</th>
+                            <th>player</th>
+                            <th>pos</th>
+                            <th>Y0</th>
+                            <th>Y1</th>
+                            <th>Y2</th>
+                        </tr>
+                    </thead>
+                    <tbody id="draftResults1">
+                        {% for result in results %}
+                        <tr data-id="{{ result['_id'] }}">
+                            <td><input type="checkbox" class="selectUserA"></td>
+                            <td>{{ result['team_name'] }}</td>
+                            <td>{{ result['player_name'] }}</td>
+                            <td>{{ result['position'] }}</td>
+                            <td>{{ "%.0f"|format(result['contract_y0_cost']) }}</td>
+                            <td>{{ "%.0f"|format(result['contract_y1_cost']) }}</td>
+                            <td>{{ "%.0f"|format(result['contract_y2_cost']) }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+
+            <!-- Second table and dropdown -->
+            <!-- <div id="totalsTable2">
+                <p>Total Y0: <span id="totalY02">0</span></p>
+                <p>Total Y1: <span id="totalY12">0</span></p>
+                <p>Total Y2: <span id="totalY22">0</span></p>
+            </div>
+            <div id="totalsTable1">
+                <p>Total Y0: <span id="totalY01">0</span></p>
+                <p>Total Y1: <span id="totalY11">0</span></p>
+                <p>Total Y2: <span id="totalY21">0</span></p>
+            </div> -->
+            <div class="col-md-6">
+                <select id="userFilter2" class="form-control mb-3">
+                    <option value="">-- show all --</option>
+                    {% for user in users %}
+                    <option value="{{ user }}" {{ 'selected' if user==current_username }}>{{ user }}</option>
+                    {% endfor %}
+                </select>
+                <table class="table" id="table2">
+                    <thead>
+                        <tr>
+                            <th><input type="checkbox" class="resetcheckboxB"></th>
+                            <th>team</th>
+                            <th>player</th>
+                            <th>pos</th>
+                            <th>Y0</th>
+                            <th>Y1</th>
+                            <th>Y2</th>
+                        </tr>
+                    </thead>
+                    <tbody id="draftResults2">
+                        {% for result in results %}
+                        <tr data-id="{{ result['_id'] }}">
+                            <td><input type="checkbox" class="selectUserB"></td>
+                            <td>{{ result['team_name'] }}</td>
+                            <td>{{ result['player_name'] }}</td>
+                            <td>{{ result['position'] }}</td>
+                            <td>{{ "%.0f"|format(result['contract_y0_cost']) }}</td>
+                            <td>{{ "%.0f"|format(result['contract_y1_cost']) }}</td>
+                            <td>{{ "%.0f"|format(result['contract_y2_cost']) }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    </div>
+</body>
+{% endblock content %}

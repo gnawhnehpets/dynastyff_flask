@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block content %}
+
+<head>
+    <title>
+        <hr>
+    </title>
+    <link href="../static/fontawesome.css" rel="stylesheet"></link>
+</head>
+
+
+
+<body>
+    <h3>Home</h3>
+    <hr>
+    <nav>
+        <a href="/setcontracts">set contracts</a>
+        <!-- <ul>
+        <li><a href="/register">Create account</a></li>
+    </ul> -->
+    </nav>
+
+    <p> {% with messages = get_flashed_messages() %}
+        {% if messages %}
+        {% for message in messages %}
+        {{ message }}
+        {% endfor %}
+        {% endif %}
+        {% endwith %} </p>
+
+</body>
+<hr>
+{% endblock content %}

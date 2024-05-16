@@ -1,0 +1,35 @@
+body {
+    padding-top: 50px;
+    padding-bottom: 50px;
+}
+
+table {
+    border-width: 0.4px;
+    border: 1px solid black;
+    /* border-style: dashed; */
+    border-collapse: collapse;
+    width: 100%;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: small;
+}
+
+thead {
+    background-color: gray;
+    text-align: left;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: small;
+}
+
+tr {
+    /* border: 1px solid black; */
+    /* border-style: dashed; */
+    border-collapse: collapse;
+}
+
+td {
+    /* border: 1px solid black; */
+    /* border-style: dashed; */
+    border-collapse: collapse;
+    padding: 5px;
+    height: 20px;
+}

@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block content %}
+<head>
+    <title>Login</title>
+</head>
+<body>
+    <h1>Login</h1>
+    <hr>
+    <form method="post">
+        <table class="col-4">
+            <tr><td>Username:</td><td><input type="text" name="username"></td></tr>
+            <tr><td>Password:</td><td><input type="password" name="password"></td></tr>
+        </table>
+        <hr>
+        <input type="submit" value="Login">
+    </form>
+    <br/>
+    <p> {% with messages = get_flashed_messages() %}
+        {% if messages %}
+          {% for message in messages %}
+            {{ message }}
+          {% endfor %}
+        {% endif %}
+      {% endwith %} </p>
+    <nav>
+        <a href="/register">Create an account</a>
+        <!-- <ul>
+          <li><a href="/register">Create account</a></li>
+        </ul> -->
+    </nav>
+</body>
+{% endblock content %}

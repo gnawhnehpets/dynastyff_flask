@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block content %}
+
+<head>
+  <title>Register</title>
+  <style>
+    h1 {
+      color: green;
+    }
+  </style>
+</head>
+
+<body>
+  <h1>Register</h1>
+  <hr>
+  <form method="post">
+    <table>
+      <tr><td>Name:</td><td><input type="text" name="name"></td></tr>
+      <tr><td>Email:</td><td><input type="email" name="email"></td></tr>
+      <tr><td>Username:</td><td><input type="text" name="username"></td></tr>
+      <tr><td>Password:</td><td><input type="password" name="password"></td></tr>
+      <tr><td>Confirm Password:</td><td><input type="password" name="confirm_password"></td></tr>
+    </table>
+    <hr>
+    <input type="submit" value="Register">
+  </form>
+  <br />
+  <p> {% with messages = get_flashed_messages() %}
+    {% if messages %}
+    {% for message in messages %}
+    {{ message }}
+    {% endfor %}
+    {% endif %}
+    {% endwith %} </p>
+  <nav>
+    <a href="/login">Login</a>
+    <!-- <ul>
+          <li><a href="/register">Create account</a></li>
+        </ul> -->
+  </nav>
+</body>
+
+{% endblock content %}
