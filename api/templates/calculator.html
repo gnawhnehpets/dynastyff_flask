@@ -114,6 +114,7 @@
                     $(this).toggle(teamName === userFilter || userFilter === "");
                 });
                 updateTotals('#draftResults1', '#totalY01', '#totalY11', '#totalY21');
+                updateSummary();
             });
 
             // Filter for second table
@@ -124,6 +125,7 @@
                     $(this).toggle(teamName === userFilter || userFilter === "");
                 });
                 updateTotals('#draftResults2', '#totalY02', '#totalY12', '#totalY22');
+                updateSummary();
             });
 
             // Initialize totals on page load
