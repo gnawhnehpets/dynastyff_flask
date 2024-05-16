@@ -141,13 +141,6 @@
             <nav class="nav-center">
                 <p><a href="/home">Home</a> | <a href="/setcontracts">Contracts</a> | <a
                         href="/calculator">Calculator</a> | <a href="/logout">Logout</a> </p>
-                <!-- <table>
-                    <tr>
-                        <td><a href="/home">Home</a></td>
-                        <td><a href="/calculator">Calculator</a></td>
-                        <td><a href="/logout">Logout</a></td>
-                    </tr>
-                </table> -->
             </nav>
         </div>
         <hr>
@@ -162,7 +155,6 @@
                             total cost of players for each year for each team. The trade calculator will show the total
                             cost of players for each year for each team, the total cost of players for each year for each
                             team after the trade, and the net change in cost for each year for each team.</p>
-                <!-- <h4 style="text-align:center">Trade calculator</h4> -->
                 <hr>
 
                 <table style="text-align: center;">
@@ -242,7 +234,6 @@
             <!-- First table and dropdown -->
             <div class="col-md-8">
                 <select id="userFilter1" class="form-control mb-3">
-                    <option value="">-- show all --</option>
                     {% for user in users %}
                     <option value="{{ user }}" {{ 'selected' if user==current_username }}>{{ user }}</option>
                     {% endfor %}
@@ -277,19 +268,8 @@
 
 
             <!-- Second table and dropdown -->
-            <!-- <div id="totalsTable2">
-                <p>Total Y0: <span id="totalY02">0</span></p>
-                <p>Total Y1: <span id="totalY12">0</span></p>
-                <p>Total Y2: <span id="totalY22">0</span></p>
-            </div>
-            <div id="totalsTable1">
-                <p>Total Y0: <span id="totalY01">0</span></p>
-                <p>Total Y1: <span id="totalY11">0</span></p>
-                <p>Total Y2: <span id="totalY21">0</span></p>
-            </div> -->
             <div class="col-md-6">
                 <select id="userFilter2" class="form-control mb-3">
-                    <option value="">-- show all --</option>
                     {% for user in users %}
                     <option value="{{ user }}" {{ 'selected' if user==current_username }}>{{ user }}</option>
                     {% endfor %}

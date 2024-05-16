@@ -1,7 +1,5 @@
 {% extends "base.html" %}
 {% block content %}
-<!-- <!DOCTYPE html>
-<html lang="en"> -->
 
 <body>
     <div class="container mt-5">
@@ -9,18 +7,9 @@
         <div class="row mb-3">
             <nav class="nav-center">
                 <p><a href="/home">Home</a> | <a href="/setcontracts">Contracts</a> | <a href="/calculator">Calculator</a> | <a href="/logout">Logout</a> </p>
-                <!-- <table>
-                    <tr>
-                        <td><a href="/home">Home</a></td>
-                        <td><a href="/calculator">Calculator</a></td>
-                        <td><a href="/logout">Logout</a></td>
-                    </tr>
-                </table> -->
             </nav>
         </div>
         <hr>
-        <!-- <h2>{{ title }}</h2> -->
-        <!-- <hr> -->
         <div class="row mb-3">
             <div class="col-2">
                 Season: 
@@ -31,8 +20,6 @@
                     {% endfor %}
                 </select>
             </div>
-        <!-- </div>
-        <div class="row mb-3"> -->
             <div class="col-2">
                 Team: 
                 <select id="userFilter" class="form-control">
@@ -60,7 +47,6 @@
                     <tr>
                         <th>season</th>
                         <th>team</th>
-                        <!-- <th>Pick</th> -->
                         <th>player</th>
                         <th>pos</th>
                         <th>Y0</th>
@@ -135,25 +121,6 @@
 
                 updateTotals();  // Recalculate totals based on visible rows
             });
-            // $('.slider').on('input change', function () {
-            //     var action = parseInt($(this).val());
-            //     var index = $(this).data('index');
-            //     var y0 = parseFloat($(this).data('y0'));
-            //     var y1Element = $('#y1_' + index);
-            //     var y2Element = $('#y2_' + index);
-
-            //     if (action === 1) {
-            //         y1Element.text('');
-            //         y2Element.text('');
-            //     } else if (action === 2) {
-            //         y1Element.text(Math.ceil(y0 * 1.2));
-            //         y2Element.text('');
-            //     } else if (action === 3) {
-            //         var y1 = Math.ceil(y0 * 1.2);
-            //         y1Element.text(y1);
-            //         y2Element.text(Math.ceil(y1 * 1.2));
-            //     }
-            // });
 
             $('.slider').on('input change', function () {
                 var action = parseInt($(this).val());
@@ -202,7 +169,6 @@
                         success: function (response) {
                             alert('Data updated successfully!');
                             window.location.reload();
-                            // console.log(response);
                         },
                         error: function (error) {
                             alert('Error updating data');
@@ -228,15 +194,6 @@
                         $(this).find('td:eq(1)').text().toLowerCase().indexOf(userFilter) > -1);
                 });
             });
-            // $('#seasonFilter, #userFilter').on('change', function() {
-            //     var seasonFilter = $('#seasonFilter').val().toLowerCase();
-            //     var userFilter = $('#userFilter').val().toLowerCase();
-
-            //     $('#draftResults tr').filter(function() {
-            //         $(this).toggle($(this).find('td:eq(0)').text().toLowerCase().indexOf(seasonFilter) > -1 && 
-            //                         $(this).find('td:eq(1)').text().toLowerCase().indexOf(userFilter) > -1)
-            //     });
-            // });
         });
 
     </script>
