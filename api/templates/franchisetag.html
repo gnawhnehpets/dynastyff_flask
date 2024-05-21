@@ -19,7 +19,7 @@
         {% endif %}
         <hr>
         <div class="row mb-3">
-            <div class="col-2">
+            <!-- <div class="col-2">
                 Season: 
                 <select id="seasonFilter" class="form-control">
                     <option value="">-- show all --</option>
@@ -27,7 +27,7 @@
                     <option value="{{ season }}" {{ 'selected' if season==latest_year }}>{{ season }}</option>
                     {% endfor %}
                 </select>
-            </div>
+            </div> -->
             <div class="col-2">
                 Team: 
                 <select id="userFilter" class="form-control">
@@ -74,11 +74,11 @@
                         <td>{{ result['position'] }}</td>
                         <td>{{ "%.0f"|format(result['contract_y0_cost']) }}</td>
                         <td id="y1_{{ loop.index0 }}">{{ "%.0f"|format(result['contract_y1_cost']) if result['contract_y1_cost'] else '' }}</td>
-                        <td id="y2_{{ loop.index0 }}">{{ "%.0f"|format(result['contract_y2_cost']) if result['contract_y2_cost'] else '' }}</td>
+                        <td id="y2_{{ loop.index0 }}">{{ "%.0f"|format(result['contract_y2_cost']) if result['contract_y2_cost'] else ''}}</td>
                         <td>{{ result['free_agent_before_season'] }}</td>
                         <td>
-                            {% if result['needs_contract'] and result['team_name'] == current_username %}
-                            <input type="range" min="1" max="3" value="{{ result['slider_position'] }}" class="slider"
+                            {% if result['franchise_tag_allowed'] and result['team_name'] == current_username %}
+                            <input type="checkbox" class="contract-checkbox"
                                 data-index="{{ loop.index0 }}" data-y0="{{ result['contract_y0_cost'] }}">
                             {% elif result['team_name'] == current_username %}
                             -- under contract --
@@ -99,6 +99,112 @@
     </div>
 
     <script>
+        function updateTotals() {
+            var totalY0 = 0, totalY1 = 0, totalY2 = 0;
+    
+            // Only sum values from visible rows after filtering
+            $('#draftResults tr:visible').each(function () {
+                totalY0 += parseFloat($(this).find('td:eq(4)').text()) || 0;
+                totalY1 += parseFloat($(this).find('td[id^="y1_"]').text()) || 0;
+                totalY2 += parseFloat($(this).find('td[id^="y2_"]').text()) || 0;
+            });
+    
+            // Update the totals in the footer
+            $('#totalY0').text('$' + totalY0.toFixed(0));
+            $('#totalY1').text('$' + totalY1.toFixed(0));
+            $('#totalY2').text('$' + totalY2.toFixed(0));
+        }
+    
+        $(document).ready(function () {
+            $('#userFilter').on('change', function () {
+                var userFilter = $('#userFilter').val().toLowerCase();
+    
+                $('#draftResults tr').filter(function () {
+                    var isVisible = $(this).find('td:eq(1)').text().toLowerCase().indexOf(userFilter) > -1;
+                    $(this).toggle(isVisible);
+                    return isVisible;
+                });
+    
+                updateTotals();  // Recalculate totals based on visible rows
+            });
+            
+            $('.contract-checkbox').on('change', function () {
+                var index = $(this).data('index');
+                var y0 = parseFloat($(this).data('y0'));
+                var y1Element = $('#y1_' + index);
+    
+                if ($(this).is(':checked')) {
+                    y1Element.text(Math.ceil(y0 * 1.2));
+                } else {
+                    y1Element.text('');
+                }
+    
+                updateTotals();  // Recalculate totals based on changes
+            });
+
+            // $('.slider').on('input change', function () {
+            //     var action = parseInt($(this).val());
+            //     var index = $(this).data('index');
+            //     var y0 = parseFloat($(this).data('y0'));
+            //     var y1Element = $('#y1_' + index);
+            //     var y2Element = $('#y2_' + index);
+    
+            //     if (action === 1) {
+            //         y1Element.text('');
+            //         y2Element.text('');
+            //     } else if (action === 2) {
+            //         y1Element.text(Math.ceil(y0 * 1.2));
+            //         y2Element.text('');
+            //     } else if (action === 3) {
+            //         var y1 = Math.ceil(y0 * 1.2);
+            //         y1Element.text(y1);
+            //         y2Element.text(Math.ceil(y1 * 1.2));
+            //     }
+            // });
+    
+            $('#updateForm').submit(function (e) {
+                e.preventDefault();
+                var draftUpdates = [];
+                $('#draftResults tr').each(function () {
+                    var row = $(this);
+                    var action = row.find('.slider').val();
+                    if (action === "2" || action === "3") {
+                        var _id = row.data('id');  // Ensure you have data-id attribute on each row
+                        var y1 = (action === "2" || action === "3") ? parseFloat(row.find('#y1_' + row.index()).text()) : null;
+                        var y2 = (action === "3") ? parseFloat(row.find('#y2_' + row.index()).text()) : null;
+                        draftUpdates.push({
+                            _id: _id,
+                            y1: y1,
+                            y2: y2
+                        });
+                    }
+                });
+    
+                if (draftUpdates.length > 0) {
+                    $.ajax({
+                        url: '/updatecontracts',
+                        type: 'POST',
+                        contentType: 'application/json',
+                        data: JSON.stringify(draftUpdates),
+                        success: function (response) {
+                            alert('Data updated successfully!');
+                            window.location.reload();
+                        },
+                        error: function (error) {
+                            alert('Error updating data');
+                            console.log(error);
+                        }
+                    });
+                } else {
+                    alert('No changes to save.');
+                }
+            });
+    
+            // Trigger the change event on page load to filter based on default values
+            $('#userFilter').trigger('change');
+        });
+    </script>
+    <!-- <script>
         function updateTotals() {
             var totalY0 = 0, totalY1 = 0, totalY2 = 0;
 
@@ -204,7 +310,7 @@
             });
         });
 
-    </script>
+    </script> -->
 </body>
 
 {% endblock content %}

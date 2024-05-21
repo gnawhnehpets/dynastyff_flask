@@ -8,7 +8,7 @@ import os
 from dotenv import load_dotenv
 import logging
 
-logging.basicConfig(level=logging.DEBUG)
+# logging.basicConfig(level=logging.DEBUG)
 load_dotenv()
 
 DB_HOST = os.getenv("DB_CONNECTION")
@@ -29,15 +29,16 @@ login_manager.login_view = 'login'
 login_manager.session_protection = "strong"  # Can be 'strong', 'basic', or None
 
 class User(UserMixin):
-    def __init__(self, user_id, username):
+    def __init__(self, user_id, username, admin_status=False):
         self.id = user_id
         self.username = username
+        self.admin_status = admin_status
 
 @login_manager.user_loader
 def load_user(user_id):
     user = users_collection.find_one({"_id": ObjectId(user_id)})
     if user:
-        return User(str(user['_id']), user['username'])
+        return User(str(user['_id']), user['username'], user['admin_status'])
     return None
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -80,7 +81,8 @@ def register():
                                             "username": username, 
                                             "password": hashed_password,
                                             "name": name,
-                                            "email": email
+                                            "email": email,
+                                            "admin_status": False
                                         })
             return redirect(url_for("login"))
         flash("Username and/or email already exists.", "danger")
@@ -103,7 +105,16 @@ def about():
 @login_required
 def set_contracts():
     seasons = draft_collection.distinct("season")
-    users = draft_collection.distinct("team_name")
+    # users = draft_collection.distinct("team_name")
+    users_list = list(users_collection.find({"username": {"$exists": True}}))
+    users = {}
+    for u in users_list:
+        print(f'>>> {u}')
+        users[u['username']] = u['admin_status']
+
+    print(users)
+    print("Users:", users.keys())
+
     draft = list(draft_collection.find({}, {
                 "_id": 1, 
                 "season": 1, 
@@ -129,19 +140,81 @@ def set_contracts():
         else:
             item['slider_position'] = 1
 
-    if users:
-        print("User found:", users)
-    else:
-        print("No user found.")
+    # if users:
+    #     print("User found:", users)
+    # else:
+    #     print("No user found.")
+    
     latest_year = max(seasons) if seasons else None
     current_username = current_user.username
     return render_template("contracts.html", 
                            seasons=seasons,
-                           users=users,
+                           users=users.keys(),
                            results=draft,
                            title="set contract",
                            latest_year=latest_year,
-                           current_username=current_username)
+                           current_username=current_username,
+                            admin_status=users[current_username])
+
+@app.route("/setfranchisetags")
+@login_required
+def set_franchise_tag():
+    next_year_roster_collection = db["roster_2023"]
+    users_list = list(users_collection.find({"username": {"$exists": True}}))
+    users = {}
+    for u in users_list:
+        print(f'>>> {u}')
+        users[u['username']] = u['admin_status']
+
+    print(users)
+    print("Users:", users.keys())
+
+    # "contract.contract_years_left":1
+    roster = list(next_year_roster_collection.find( {   "contract": {"$exists": True}  }, 
+                                                    {
+                                                        "_id": 1, 
+                                                        "season": 1, 
+                                                        # "draft_type": 1, 
+                                                        # "pick_no": 1, 
+                                                        "player_name": 1, 
+                                                        "team_name": 1,
+                                                        # "needs_contract":1,
+                                                        "position": "$metadata.position",
+                                                        "contract_y0_cost": "$contract.y0_cost",
+                                                        "contract_y1_cost": {"$ifNull": ["$contract.y1_cost", 0]},
+                                                        "contract_y2_cost": {"$ifNull": ["$contract.y2_cost", 0]},
+                                                        "contract_years_left": "$contract.contract_years_left",
+                                                        "free_agent_before_season": "$contract.free_agent_before_season",
+                                                        "franchise_tag_allowed": "$franchise_tag_allowed"
+                                                        }
+                # {
+                # "_id": 1, 
+                # "season": 1, 
+                # "draft_type": 1, 
+                # "pick_no": 1, 
+                # "player_name": 1, 
+                # "team_name": 1,
+                # "needs_contract":1,
+                # "position": "$metadata.position",
+                # "contract_y0_cost": "$contract.y0_cost",
+                # "contract_y1_cost": {"$ifNull": ["$contract.y1_cost", 0]},
+                # "contract_y2_cost": {"$ifNull": ["$contract.y2_cost", 0]},
+                # "contract_years_left": "$contract.contract_years_left",
+                # "free_agent_before_season": "$contract.free_agent_before_season",
+                # }
+                ))
+        
+    # latest_year = max(seasons) if seasons else None
+    current_username = current_user.username
+    return render_template("franchisetag.html", 
+                           seasons=[2023],
+                           users=users.keys(),
+                           results=roster,
+                           title="set franchise tag",
+                           latest_year=[2023],
+                           current_username=current_username,
+                           admin_status=users[current_username])
+
 
 @app.route("/updatecontracts", methods=['POST'])
 @login_required
