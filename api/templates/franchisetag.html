@@ -3,10 +3,10 @@
 
 <body>
     <div class="container mt-5">
-        <hr>
+        <!-- <hr>
         <div class="row mb-3">
             <nav class="nav-center">
-                <p><a href="/home">Home</a> | <a href="/setcontracts">Contracts</a> | <a href="/calculator">Calculator</a> | <a href="/logout">Logout</a> </p>
+                <p><a href="/home">Home</a> | <a href="/setcontracts">Contracts</a> | <a href="/setfranchisetags">Franchise Tag</a> | <a href="/calculator">Calculator</a> | <a href="/logout">Logout</a> </p>
             </nav>
         </div>
         <hr>
@@ -17,7 +17,7 @@
             </div>
         </div>
         {% endif %}
-        <hr>
+        <hr> -->
         <div class="row mb-3">
             <!-- <div class="col-2">
                 Season: 
@@ -43,12 +43,12 @@
             <table class="table">
                 <thead style="background-color: white;">
                     <tr id="totalsRow">
-                        <td colspan="4" style="text-align:right">Contract totals</td>
+                        <td colspan="2"><strong>{{ title }}</strong></td>
+                        <td colspan="2" style="text-align:right">Contract totals</td>
                         <td id="totalY0">0</td>
                         <td id="totalY1">0</td>
                         <td id="totalY2">0</td>
-                        <td></td>
-                        <td><button type="submit" class="btn btn-primary">Save Changes</button></td>
+                        <td colspan="2"><button type="submit" class="btn btn-primary">Save Changes</button></td>
                     </tr>
                 </thead>
                 <thead>
@@ -57,14 +57,14 @@
                         <th>team</th>
                         <th>player</th>
                         <th>pos</th>
-                        <th>Y0</th>
-                        <th>Y1</th>
-                        <th>Y2</th>
+                        <th>{{ latest_year-1 }}</th>
+                        <th>{{ latest_year }}</th>
+                        <th>{{ latest_year+1 }}</th>
                         <th>FA in Y</th>
                         <th>contract</th>
                     </tr>
                 </thead>
-                <tbody id="draftResults">
+                <tbody id="endSeasonRoster">
 
                     {% for result in results %}
                     <tr data-id="{{ result['_id'] }}">
@@ -72,12 +72,12 @@
                         <td>{{ result['team_name'] }}</td>
                         <td>{{ result['player_name'] }}</td>
                         <td>{{ result['position'] }}</td>
-                        <td>{{ "%.0f"|format(result['contract_y0_cost']) }}</td>
+                        <td style="background-color: rgb(213, 213, 213);">{{ "%.0f"|format(result['contract_y0_cost']) }}</td>
                         <td id="y1_{{ loop.index0 }}">{{ "%.0f"|format(result['contract_y1_cost']) if result['contract_y1_cost'] else '' }}</td>
                         <td id="y2_{{ loop.index0 }}">{{ "%.0f"|format(result['contract_y2_cost']) if result['contract_y2_cost'] else ''}}</td>
                         <td>{{ result['free_agent_before_season'] }}</td>
                         <td>
-                            {% if result['franchise_tag_allowed'] and result['team_name'] == current_username %}
+                            {% if (result['franchise_tag_allowed'] and result['team_name'] == current_username) or (result['franchise_tag_allowed'] and admin_status) %}
                             <input type="checkbox" class="contract-checkbox"
                                 data-index="{{ loop.index0 }}" data-y0="{{ result['contract_y0_cost'] }}">
                             {% elif result['team_name'] == current_username %}
@@ -103,7 +103,7 @@
             var totalY0 = 0, totalY1 = 0, totalY2 = 0;
     
             // Only sum values from visible rows after filtering
-            $('#draftResults tr:visible').each(function () {
+            $('#endSeasonRoster tr:visible').each(function () {
                 totalY0 += parseFloat($(this).find('td:eq(4)').text()) || 0;
                 totalY1 += parseFloat($(this).find('td[id^="y1_"]').text()) || 0;
                 totalY2 += parseFloat($(this).find('td[id^="y2_"]').text()) || 0;
@@ -114,12 +114,21 @@
             $('#totalY1').text('$' + totalY1.toFixed(0));
             $('#totalY2').text('$' + totalY2.toFixed(0));
         }
+
+        function limitCheckboxes() {
+            var checkedCount = $('.contract-checkbox:checked').length;
+            if (checkedCount >= 2) {
+                $('.contract-checkbox').not(':checked').prop('disabled', true);
+            } else {
+                $('.contract-checkbox').prop('disabled', false);
+            }
+        }
     
         $(document).ready(function () {
             $('#userFilter').on('change', function () {
                 var userFilter = $('#userFilter').val().toLowerCase();
     
-                $('#draftResults tr').filter(function () {
+                $('#endSeasonRoster tr').filter(function () {
                     var isVisible = $(this).find('td:eq(1)').text().toLowerCase().indexOf(userFilter) > -1;
                     $(this).toggle(isVisible);
                     return isVisible;
@@ -140,6 +149,8 @@
                 }
     
                 updateTotals();  // Recalculate totals based on changes
+                // Initial call to limit checkboxes based on current selections
+                limitCheckboxes();  // Limit checkboxes to 2 selections
             });
 
             // $('.slider').on('input change', function () {
@@ -161,31 +172,31 @@
             //         y2Element.text(Math.ceil(y1 * 1.2));
             //     }
             // });
-    
+            
             $('#updateForm').submit(function (e) {
                 e.preventDefault();
                 var draftUpdates = [];
-                $('#draftResults tr').each(function () {
+                var filteredIds = [];
+                $('#endSeasonRoster tr:visible').each(function () {
                     var row = $(this);
-                    var action = row.find('.slider').val();
-                    if (action === "2" || action === "3") {
-                        var _id = row.data('id');  // Ensure you have data-id attribute on each row
-                        var y1 = (action === "2" || action === "3") ? parseFloat(row.find('#y1_' + row.index()).text()) : null;
-                        var y2 = (action === "3") ? parseFloat(row.find('#y2_' + row.index()).text()) : null;
+                    var _id = row.data('id');  // Ensure you have data-id attribute on each row
+                    filteredIds.push(_id);
+                    var checkbox = row.find('.contract-checkbox');
+                    if (checkbox.is(':checked')) {
+                        var y1 = parseFloat(row.find('#y1_' + row.index()).text()) || null;
                         draftUpdates.push({
                             _id: _id,
-                            y1: y1,
-                            y2: y2
+                            franchise_cost: y1
                         });
                     }
                 });
-    
-                if (draftUpdates.length > 0) {
+
+                if (filteredIds.length > 0) {
                     $.ajax({
-                        url: '/updatecontracts',
+                        url: '/updatefranchisetags',
                         type: 'POST',
                         contentType: 'application/json',
-                        data: JSON.stringify(draftUpdates),
+                        data: JSON.stringify({ updates: draftUpdates, ids_to_update: filteredIds }),
                         success: function (response) {
                             alert('Data updated successfully!');
                             window.location.reload();
@@ -199,9 +210,51 @@
                     alert('No changes to save.');
                 }
             });
+
+            // $('#updateForm').submit(function (e) {
+            //     e.preventDefault();
+            //     var draftUpdates = [];
+            //     $('#endSeasonRoster tr').each(function () {
+            //         var row = $(this);
+            //         var action = row.find('.slider').val();
+            //         if (action === "2" || action === "3") {
+            //             var _id = row.data('id');  // Ensure you have data-id attribute on each row
+            //             var y1 = (action === "2" || action === "3") ? parseFloat(row.find('#y1_' + row.index()).text()) : null;
+            //             var y2 = (action === "3") ? parseFloat(row.find('#y2_' + row.index()).text()) : null;
+            //             draftUpdates.push({
+            //                 _id: _id,
+            //                 y1: y1,
+            //                 y2: y2
+            //             });
+            //         }
+            //     });
     
+            //     if (draftUpdates.length > 0) {
+            //         $.ajax({
+            //             url: '/updatefranchisetags',
+            //             type: 'POST',
+            //             contentType: 'application/json',
+            //             data: JSON.stringify(draftUpdates),
+            //             success: function (response) {
+            //                 alert('Data updated successfully!');
+            //                 window.location.reload();
+            //             },
+            //             error: function (error) {
+            //                 alert('Error updating data');
+            //                 console.log(error);
+            //             }
+            //         });
+            //     } else {
+            //         alert('No changes to save.');
+            //     }
+            // });
+            
+            
             // Trigger the change event on page load to filter based on default values
             $('#userFilter').trigger('change');
+
+            // Initial call to limit checkboxes based on current selections
+            limitCheckboxes();
         });
     </script>
     <!-- <script>
@@ -209,7 +262,7 @@
             var totalY0 = 0, totalY1 = 0, totalY2 = 0;
 
             // Only sum values from visible rows after filtering
-            $('#draftResults tr:visible').each(function () {
+            $('#endSeasonRoster tr:visible').each(function () {
                 totalY0 += parseFloat($(this).find('td:eq(4)').text()) || 0;
                 totalY1 += parseFloat($(this).find('td[id^="y1_"]').text()) || 0;
                 totalY2 += parseFloat($(this).find('td[id^="y2_"]').text()) || 0;
@@ -226,7 +279,7 @@
                 var seasonFilter = $('#seasonFilter').val().toLowerCase();
                 var userFilter = $('#userFilter').val().toLowerCase();
 
-                $('#draftResults tr').filter(function () {
+                $('#endSeasonRoster tr').filter(function () {
                     var isVisible = $(this).find('td:eq(0)').text().toLowerCase().indexOf(seasonFilter) > -1 &&
                         $(this).find('td:eq(1)').text().toLowerCase().indexOf(userFilter) > -1;
                     $(this).toggle(isVisible);
@@ -259,7 +312,7 @@
             $('#updateForm').submit(function (e) {
                 e.preventDefault();
                 var draftUpdates = [];
-                $('#draftResults tr').each(function () {
+                $('#endSeasonRoster tr').each(function () {
                     var row = $(this);
                     var action = row.find('.slider').val();
                     if (action === "2" || action === "3") {
@@ -303,7 +356,7 @@
                 var seasonFilter = $('#seasonFilter').val().toLowerCase();
                 var userFilter = $('#userFilter').val().toLowerCase();
 
-                $('#draftResults tr').filter(function () {
+                $('#endSeasonRoster tr').filter(function () {
                     $(this).toggle($(this).find('td:eq(0)').text().toLowerCase().indexOf(seasonFilter) > -1 &&
                         $(this).find('td:eq(1)').text().toLowerCase().indexOf(userFilter) > -1);
                 });

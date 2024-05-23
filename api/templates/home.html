@@ -11,31 +11,32 @@
 
 
 <body>
-    <div class="container mt-5">
-        <hr>
-        <div class="row mb-3">
-            <nav class="nav-center">
-                <p><a href="/home">Home</a> | <a href="/setcontracts">Contracts</a> | <a href="/calculator">Calculator</a> | <a href="/logout">Logout</a> </p>
-                <!-- <table>
-                    <tr>
-                        <td><a href="/home">Home</a></td>
-                        <td><a href="/calculator">Calculator</a></td>
-                        <td><a href="/logout">Logout</a></td>
-                    </tr>
-                </table> -->
-            </nav>
-        </div>
-        <hr>
-    </div>
     <h3>Home</h3>
     <hr>
-    <nav>
-        <a href="/setcontracts">set contracts</a>
-        <!-- <ul>
-        <li><a href="/register">Create account</a></li>
-    </ul> -->
-    </nav>
-
+    <br/>
+    <p><strong>Features</strong></p>
+    <hr>
+    <ul>
+        <li>Preseason ETL - extract, transform, load data for upcoming season</li>
+        <li>Manage taxi squad - manage taxi squad</li>
+        <li>Set franchise tags - assign franchise tags to players</li>
+        <li>Set contracts - assign contracts to drafted players</li>
+        <li>Calculator - trade calculator</li>
+    </ul>
+    <br/>
+    <p><strong>Workflow</strong></p>
+    <hr>
+    <ul>
+        <li>Create collection for preseason ETL</li>
+        <li>Confirm taxi squad eligibility (via <a href="/managetaxisquad">taxi squad page</a>)</li>
+        <li>Set franchise tags (via <a href="/setfranchisetags">franchise tag page</a>)</li>
+        <li>Create roster collection for upcoming season</li>
+        <li>Update roster collection with RFA updates</li>
+        <li>Update roster collection with predraft transactions (e.g., cuts, trades)</li>
+        <li>Update roster collection with draft results</li>
+        <li>Set contracts  (via <a href="/managetaxisquad">set contract page</a>)</li>
+    </ul>
+    <hr>
     <p> {% with messages = get_flashed_messages() %}
         {% if messages %}
         {% for message in messages %}
@@ -45,5 +46,4 @@
         {% endwith %} </p>
 
 </body>
-<hr>
 {% endblock content %}
