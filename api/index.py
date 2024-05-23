@@ -178,7 +178,8 @@ def set_contracts():
             "contract_y2_cost": {"$ifNull": ["$contract.y2_cost", 0]},
             "contract_years_left": "$contract.contract_years_left",
             "free_agent_before_season": "$contract.free_agent_before_season",
-        }}
+        }},
+        {"$sort": {"team_name": 1} }
     ]))
 
     for item in season_collection:
@@ -241,7 +242,7 @@ def set_franchise_tag():
         "contract_years_left": "$contract.contract_years_left",
         "free_agent_before_season": "$contract.free_agent_before_season",
         "franchise_tag_allowed": "$contract.franchise_tag_allowed"
-    }))
+    }).sort([("team_name", 1)]))
 
     current_username = current_user.username
     return render_template("franchise_tags.html",
@@ -303,7 +304,7 @@ def manage_taxi_squad():
         "contract_years_left": "$contract.contract_years_left",
         "free_agent_before_season": "$contract.free_agent_before_season",
         "taxi_designation": "$contract.taxi_designation"
-    }))
+    }).sort([("team_name", 1)]))
 
     current_username = current_user.username
     return render_template("taxi_squad.html",
