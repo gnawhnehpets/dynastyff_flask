@@ -132,6 +132,7 @@ table.striped tr:nth-of-type(2n) {
 
 td,
 th {
+  white-space: nowrap;
   vertical-align: middle;
   /* padding: 1.2rem 0.4rem; */
   padding: 10px 10px;
