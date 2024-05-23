@@ -16,16 +16,21 @@
     <!-- <link href="http://getbootstrap.com/dist/css/bootstrap.min.css" rel="stylesheet"> -->
     <!-- <link href="http://getbootstrap.com/examples/jumbotron-narrow/jumbotron-narrow.css" rel="stylesheet"> -->
     <link href="../static/chota/chota.css" rel="stylesheet">
+
+    {% if current_user.is_authenticated %}
     <hr>
     <div class="row mb-3">
+
         <nav class="nav-center">
             <p><a href="/home">Home</a> | <a href="/managetaxisquad">Manage taxi squad</a> | <a
                     href="/setfranchisetags">Set franchise tags</a> | <a href="/setcontracts">Set contracts</a> | <a
                     href="/draftresults">Draft results</a> | <a href="/calculator">Trade calculator</a> | <a
                     href="/logout">Logout</a> </p>
         </nav>
+
     </div>
     <hr>
+    {% endif %}
 </head>
 
 <body>
