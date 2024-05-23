@@ -4,6 +4,15 @@
 <body>
     <div class="container mt-5">
         <div class="row mb-3">
+            <div class="col-2">
+                Team:
+                <select id="userFilter" class="form-control">
+                    <option value="">-- show all --</option>
+                    {% for user in users %}
+                    <option value="{{ user }}" {{ 'selected' if user==current_username }}>{{ user }}</option>
+                    {% endfor %}
+                </select>
+            </div>
         </div>
         <form id="updateForm">
             <table class="table">
@@ -54,7 +63,8 @@
                             result['contract_y2_cost'] else ''}}</td>
                         <td>{{ result['free_agent_before_season'] }}</td>
                         <td>
-                            {% if admin_status and result['taxi_designation'] %}
+                            {% if (result['team_name'] == current_username and result['taxi_designation']) or
+                            (admin_status and result['taxi_designation']) %}
                             <div class="checkbox-wrapper">
                                 <input type="checkbox" class="taxi-checkbox" data-index="{{ loop.index0 }}"
                                     data-id="{{ result['_id'] }}" data-y0="{{ result['contract_y0_cost'] }}"
@@ -96,6 +106,18 @@
         }
 
         $(document).ready(function () {
+            $('#userFilter').on('change', function () {
+                var userFilter = $('#userFilter').val().toLowerCase();
+
+                $('#endSeasonRoster tr').filter(function () {
+                    var isVisible = $(this).find('td:eq(1)').text().toLowerCase().indexOf(userFilter) > -1;
+                    $(this).toggle(isVisible);
+                    return isVisible;
+                });
+
+                updateTotals();  // Recalculate totals based on visible rows
+            });
+
             $('#updateForm').submit(function (e) {
                 e.preventDefault();
                 var taxiUpdates = [];
