@@ -5,16 +5,7 @@
     <div class="container mt-5">
         <div class="row mb-3">
             <div class="col-2">
-                Season:
-                <select id="seasonFilter" class="form-control">
-                    <option value="">-- show all --</option>
-                    {% for season in seasons %}
-                    <option value="{{ season }}" {{ 'selected' if season==latest_year }}>{{ season }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-            <div class="col-2">
-                Team:
+                Team: 
                 <select id="userFilter" class="form-control">
                     <option value="">-- show all --</option>
                     {% for user in users %}
@@ -28,15 +19,12 @@
             <table class="table">
                 <thead style="background-color: white;">
                     <tr id="totalsRow">
-                        <td colspan="2">
-                            <h3>{{ title }}</h3>
-                        </td>
+                        <td colspan="2"><h3>{{ title }}</h3></td>
                         <td colspan="2" style="text-align:right">Contract totals</td>
                         <td id="totalY0">0</td>
                         <td id="totalY1">0</td>
                         <td id="totalY2">0</td>
-                        <td colspan="2"><button type="submit" class="btn btn-primary" style="float: right;">Save
-                                Changes</button></td>
+                        <td colspan="2"><button type="submit" class="btn btn-primary" style="float: right;">Save Changes</button></td>
                     </tr>
                 </thead>
                 <thead>
@@ -45,14 +33,14 @@
                         <th>team</th>
                         <th>player</th>
                         <th>pos</th>
-                        <th id="headerY0">{{ latest_year }}</th>
-                        <th id="headerY1">{{ latest_year + 1 }}</th>
-                        <th id="headerY2">{{ latest_year + 2 }}</th>
+                        <th>{{ latest_year-1 }}</th>
+                        <th>{{ latest_year }}</th>
+                        <th>{{ latest_year+1 }}</th>
                         <th>FA in Y</th>
                         <th>contract</th>
                     </tr>
                 </thead>
-                <tbody id="draftResults">
+                <tbody id="endSeasonRoster">
 
                     {% for result in results %}
                     <tr data-id="{{ result['_id'] }}">
@@ -60,16 +48,13 @@
                         <td>{{ result['team_name'] }}</td>
                         <td>{{ result['player_name'] }}</td>
                         <td>{{ result['position'] }}</td>
-                        <td>{{ "%.0f"|format(result['contract_y0_cost']) }}</td>
-                        <td id="y1_{{ loop.index0 }}">{{ "%.0f"|format(result['contract_y1_cost']) if
-                            result['contract_y1_cost'] else '' }}</td>
-                        <td id="y2_{{ loop.index0 }}">{{ "%.0f"|format(result['contract_y2_cost']) if
-                            result['contract_y2_cost'] else '' }}</td>
+                        <td style="background-color: rgb(213, 213, 213);">{{ "%.0f"|format(result['contract_y0_cost']) }}</td>
+                        <td id="y1_{{ loop.index0 }}">{{ "%.0f"|format(result['contract_y1_cost']) if result['contract_y1_cost'] else '' }}</td>
+                        <td id="y2_{{ loop.index0 }}">{{ "%.0f"|format(result['contract_y2_cost']) if result['contract_y2_cost'] else ''}}</td>
                         <td>{{ result['free_agent_before_season'] }}</td>
                         <td>
-                            {% if (result['needs_contract'] and result['team_name'] == current_username) or
-                            (result['needs_contract'] and admin_status) %}
-                            <input type="range" min="1" max="3" value="{{ result['slider_position'] }}" class="slider"
+                            {% if (result['franchise_tag_allowed'] and result['team_name'] == current_username) or (result['franchise_tag_allowed'] and admin_status) %}
+                            <input type="checkbox" class="contract-checkbox"
                                 data-index="{{ loop.index0 }}" data-y0="{{ result['contract_y0_cost'] }}">
                             {% elif result['team_name'] == current_username %}
                             -- under contract --
@@ -85,113 +70,89 @@
             <hr>
             <button type="submit" class="btn btn-primary">Save Changes</button>
         </form>
+
+
     </div>
 
     <script>
         function updateTotals() {
             var totalY0 = 0, totalY1 = 0, totalY2 = 0;
-
+    
             // Only sum values from visible rows after filtering
-            $('#draftResults tr:visible').each(function () {
+            $('#endSeasonRoster tr:visible').each(function () {
                 totalY0 += parseFloat($(this).find('td:eq(4)').text()) || 0;
                 totalY1 += parseFloat($(this).find('td[id^="y1_"]').text()) || 0;
                 totalY2 += parseFloat($(this).find('td[id^="y2_"]').text()) || 0;
             });
-
+    
             // Update the totals in the footer
             $('#totalY0').text('$' + totalY0.toFixed(0));
             $('#totalY1').text('$' + totalY1.toFixed(0));
             $('#totalY2').text('$' + totalY2.toFixed(0));
         }
 
-        function updateHeaders(selectedYear) {
-            if (selectedYear) {
-                $('#headerY0').text(selectedYear);
-                $('#headerY1').text(parseInt(selectedYear) + 1);
-                $('#headerY2').text(parseInt(selectedYear) + 2);
+        function limitCheckboxes() {
+            var checkedCount = $('.contract-checkbox:checked').length;
+            if (checkedCount >= 2) {
+                $('.contract-checkbox').not(':checked').prop('disabled', true);
             } else {
-                $('#headerY0').text("0");
-                $('#headerY1').text("0");
-                $('#headerY2').text("0");
+                $('.contract-checkbox').prop('disabled', false);
             }
         }
-
+    
         $(document).ready(function () {
-            $('#seasonFilter').on('change', function () {
-                var selectedYear = $('#seasonFilter').val();
-                updateHeaders(selectedYear);
-
-                var seasonFilter = selectedYear.toLowerCase();
-                var userFilter = $('#userFilter').val().toLowerCase();
-
-                $('#draftResults tr').filter(function () {
-                    var isVisible = (!seasonFilter || $(this).find('td:eq(0)').text().toLowerCase().indexOf(seasonFilter) > -1) &&
-                        (!userFilter || $(this).find('td:eq(1)').text().toLowerCase().indexOf(userFilter) > -1);
-                    $(this).toggle(isVisible);
-                    return isVisible;
-                });
-
-                updateTotals();  // Recalculate totals based on visible rows
-            });
-
             $('#userFilter').on('change', function () {
-                var seasonFilter = $('#seasonFilter').val().toLowerCase();
                 var userFilter = $('#userFilter').val().toLowerCase();
-
-                $('#draftResults tr').filter(function () {
-                    var isVisible = (!seasonFilter || $(this).find('td:eq(0)').text().toLowerCase().indexOf(seasonFilter) > -1) &&
-                        (!userFilter || $(this).find('td:eq(1)').text().toLowerCase().indexOf(userFilter) > -1);
+    
+                $('#endSeasonRoster tr').filter(function () {
+                    var isVisible = $(this).find('td:eq(1)').text().toLowerCase().indexOf(userFilter) > -1;
                     $(this).toggle(isVisible);
                     return isVisible;
                 });
-
+    
                 updateTotals();  // Recalculate totals based on visible rows
             });
-
-            $('.slider').on('input change', function () {
-                var action = parseInt($(this).val());
+            
+            $('.contract-checkbox').on('change', function () {
                 var index = $(this).data('index');
                 var y0 = parseFloat($(this).data('y0'));
                 var y1Element = $('#y1_' + index);
-                var y2Element = $('#y2_' + index);
-
-                if (action === 1) {
-                    y1Element.text('');
-                    y2Element.text('');
-                } else if (action === 2) {
+    
+                if ($(this).is(':checked')) {
                     y1Element.text(Math.ceil(y0 * 1.2));
-                    y2Element.text('');
-                } else if (action === 3) {
-                    var y1 = Math.ceil(y0 * 1.2);
-                    y1Element.text(y1);
-                    y2Element.text(Math.ceil(y1 * 1.2));
+                } else {
+                    y1Element.text('');
                 }
+    
+                updateTotals();  // Recalculate totals based on changes
+                // Initial call to limit checkboxes based on current selections
+                limitCheckboxes();  // Limit checkboxes to 2 selections
             });
-
+            
             $('#updateForm').submit(function (e) {
                 e.preventDefault();
                 var draftUpdates = [];
-                $('#draftResults tr').each(function () {
+                var filteredIds = [];
+                $('#endSeasonRoster tr:visible').each(function () {
                     var row = $(this);
-                    var action = row.find('.slider').val();
-                    if (action === "2" || action === "3") {
-                        var _id = row.data('id');  // Ensure you have data-id attribute on each row
-                        var y1 = (action === "2" || action === "3") ? parseFloat(row.find('#y1_' + row.index()).text()) : null;
-                        var y2 = (action === "3") ? parseFloat(row.find('#y2_' + row.index()).text()) : null;
+                    var _id = row.data('id');  // Ensure you have data-id attribute on each row
+                    filteredIds.push(_id);
+                    var checkbox = row.find('.contract-checkbox');
+                    if (checkbox.is(':checked')) {
+                        var y1 = parseFloat(row.find('#y1_' + row.index()).text()) || null;
                         draftUpdates.push({
                             _id: _id,
-                            y1: y1,
-                            y2: y2
+                            franchise_cost: y1
                         });
                     }
                 });
 
-                if (draftUpdates.length > 0) {
+                if (filteredIds.length > 0) {
                     $.ajax({
-                        url: '/updatecontracts',
+                        url: '/updatefranchisetags',
                         type: 'POST',
                         contentType: 'application/json',
-                        data: JSON.stringify(draftUpdates),
+                        data: JSON.stringify({ updates: draftUpdates, ids_to_update: filteredIds }),
                         success: function (response) {
                             alert('Data updated successfully!');
                             window.location.reload();
@@ -206,8 +167,12 @@
                 }
             });
 
+            
             // Trigger the change event on page load to filter based on default values
-            $('#seasonFilter, #userFilter').trigger('change');
+            $('#userFilter').trigger('change');
+
+            // Initial call to limit checkboxes based on current selections
+            limitCheckboxes();
         });
     </script>
 </body>

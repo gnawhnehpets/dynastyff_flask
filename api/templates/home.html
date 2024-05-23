@@ -3,47 +3,49 @@
 
 <head>
     <title>
-        <hr>
     </title>
-    <link href="../static/fontawesome.css" rel="stylesheet"></link>
+    <link href="../static/fontawesome.css" rel="stylesheet">
+    </link>
 </head>
 
-
-
 <body>
-    <h3>Home</h3>
-    <hr>
-    <br/>
-    <p><strong>Features</strong></p>
-    <hr>
-    <ul>
-        <li>Preseason ETL - extract, transform, load data for upcoming season</li>
-        <li>Manage taxi squad - manage taxi squad</li>
-        <li>Set franchise tags - assign franchise tags to players</li>
-        <li>Set contracts - assign contracts to drafted players</li>
-        <li>Calculator - trade calculator</li>
-    </ul>
-    <br/>
-    <p><strong>Workflow</strong></p>
-    <hr>
-    <ul>
-        <li>Create collection for preseason ETL</li>
-        <li>Confirm taxi squad eligibility (via <a href="/managetaxisquad">taxi squad page</a>)</li>
-        <li>Set franchise tags (via <a href="/setfranchisetags">franchise tag page</a>)</li>
-        <li>Create roster collection for upcoming season</li>
-        <li>Update roster collection with RFA updates</li>
-        <li>Update roster collection with predraft transactions (e.g., cuts, trades)</li>
-        <li>Update roster collection with draft results</li>
-        <li>Set contracts  (via <a href="/managetaxisquad">set contract page</a>)</li>
-    </ul>
-    <hr>
-    <p> {% with messages = get_flashed_messages() %}
-        {% if messages %}
-        {% for message in messages %}
-        {{ message }}
-        {% endfor %}
-        {% endif %}
-        {% endwith %} </p>
+    <div class="container mt-5" style="width:60%">
+        <h3>Home</h3>
+        <hr>
+        <br />
+        <p><strong>Overview</strong></p>
+        <hr>
+        <ul>
+            <li>ETL - extract, transform, load data for upcoming season</li>
+            <li>Manage taxi squad - manage taxi squad</li>
+            <li>Set franchise tags - assign franchise tags to players</li>
+            <li>Set contracts - assign contracts to drafted players</li>
+            <li>Draft results - view historical draft results</li>
+            <li>Trade calculator - calculate salary implications of a trade (outbound/inbound)</li>
+        </ul>
+        <br />
+        <p><strong>Workflow</strong></p>
+        <hr>
+        <u>Preseason</u>
+        <ul>
+            <li>Create collection for preseason ETL</li>
+            <li>Confirm taxi squad eligibility (via <a href="/managetaxisquad">taxi squad page</a>)</li>
+            <li>Set franchise tags (via <a href="/setfranchisetags">franchise tag page</a>)</li>
+            <li>Create roster collection for upcoming season</li>
+            <li>Update roster collection with RFA updates</li>
+            <li>Update roster collection with predraft transactions (e.g., cuts, trades)</li>
+            <li>Update roster collection with draft results</li>
+            <li>Set contracts (via <a href="/managetaxisquad">set contract page</a>)</li>
+        </ul>
 
+        <hr>
+        <p> {% with messages = get_flashed_messages() %}
+            {% if messages %}
+            {% for message in messages %}
+            {{ message }}
+            {% endfor %}
+            {% endif %}
+            {% endwith %} </p>
+    </div>
 </body>
 {% endblock content %}

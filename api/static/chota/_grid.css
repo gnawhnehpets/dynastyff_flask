@@ -1,7 +1,8 @@
-.container {
+/* change width of rendered table */
+.container { 
   max-width: var(--grid-maxWidth);
   margin: 0 auto;
-  width: 96%;
+  width: 75%;
   padding: 0 calc(var(--grid-gutter) / 2);
 }
 

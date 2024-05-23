@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+{% block content %}
+
+<body>
+    <div class="container mt-5">
+        <div class="row mb-3">
+            <div class="col-2">
+                Season: 
+                <select id="seasonFilter" class="form-control">
+                    <option value="">-- show all --</option>
+                    {% for season in seasons %}
+                    <option value="{{ season }}" {{ 'selected' if season==latest_year }}>{{ season }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-2">
+                Team: 
+                <select id="userFilter" class="form-control">
+                    <option value="">-- show all --</option>
+                    {% for user in users %}
+                    <option value="{{ user }}" {{ 'selected' if user==current_username }}>{{ user }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+        <form id="updateForm">
+            <hr>
+            <table class="table">
+                <thead style="background-color: white;">
+                    <tr id="totalsRow">
+                        <td colspan="2"><h3>{{ title }}</h3></td>
+                        <td colspan="2" style="text-align:right">Auction budget used</td>
+                        <td id="totalY0">0</td>
+                    </tr>
+                </thead>
+                <thead>
+                    <tr>
+                        <th>season</th>
+                        <th>team</th>
+                        <th>player</th>
+                        <th>pos</th>
+                        <th id="headerY0">{{ latest_year }}</th>
+                    </tr>
+                </thead>
+                <tbody id="draftResults">
+
+                    {% for result in results %}
+                    <tr data-id="{{ result['_id'] }}">
+                        <td>{{ result['season'] }}</td>
+                        <td>{{ result['team_name'] }}</td>
+                        <td>{{ result['player_name'] }}</td>
+                        <td>{{ result['position'] }}</td>
+                        <td>{{ "%.0f"|format(result['contract_y0_cost']) }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+
+            </table>
+        </form>
+    </div>
+
+    <script>
+        function updateTotals() {
+            var totalY0 = 0;
+
+            // Only sum values from visible rows after filtering
+            $('#draftResults tr:visible').each(function () {
+                totalY0 += parseFloat($(this).find('td:eq(4)').text()) || 0;
+            });
+
+            // Update the totals in the footer
+            $('#totalY0').text('$' + totalY0.toFixed(0));
+        }
+
+        function updateHeaders(selectedYear) {
+            if (selectedYear) {
+                $('#headerY0').text(selectedYear);
+            } else {
+                $('#headerY0').text("0");
+            }
+        }
+
+        $(document).ready(function () {
+            $('#seasonFilter').on('change', function () {
+                var selectedYear = $('#seasonFilter').val();
+                updateHeaders(selectedYear);
+
+                var seasonFilter = selectedYear.toLowerCase();
+                var userFilter = $('#userFilter').val().toLowerCase();
+
+                $('#draftResults tr').filter(function () {
+                    var isVisible = (!seasonFilter || $(this).find('td:eq(0)').text().toLowerCase().indexOf(seasonFilter) > -1) &&
+                                    (!userFilter || $(this).find('td:eq(1)').text().toLowerCase().indexOf(userFilter) > -1);
+                    $(this).toggle(isVisible);
+                    return isVisible;
+                });
+
+                updateTotals();  // Recalculate totals based on visible rows
+            });
+
+            $('#userFilter').on('change', function () {
+                var seasonFilter = $('#seasonFilter').val().toLowerCase();
+                var userFilter = $('#userFilter').val().toLowerCase();
+
+                $('#draftResults tr').filter(function () {
+                    var isVisible = (!seasonFilter || $(this).find('td:eq(0)').text().toLowerCase().indexOf(seasonFilter) > -1) &&
+                                    (!userFilter || $(this).find('td:eq(1)').text().toLowerCase().indexOf(userFilter) > -1);
+                    $(this).toggle(isVisible);
+                    return isVisible;
+                });
+
+                updateTotals();  // Recalculate totals based on visible rows
+            });
+
+
+            // Trigger the change event on page load to filter based on default values
+            $('#seasonFilter, #userFilter').trigger('change');
+        });
+    </script>
+</body>
+
+{% endblock content %}

@@ -7,34 +7,79 @@
     h1 {
       color: green;
     }
+
+    table {
+      width: 100%;
+    }
+
+    td {
+      white-space: nowrap;
+      /* Prevents line breaks within cells */
+      padding: 5px;
+    }
+    
+    input[type="text"],
+    input[type="email"],
+    input[type="password"] {
+      width: 100%; /* Makes input fields full width within their cell */ 
+    }
   </style>
+  <script>
+    function validateForm() {
+      var password = document.forms["registerForm"]["password"].value;
+      var confirmPassword = document.forms["registerForm"]["confirm_password"].value;
+      if (password !== confirmPassword) {
+        alert("Passwords do not match!");
+        return false;
+      }
+      return true;
+    }
+  </script>
 </head>
 
-<body>
-  <h1>Register</h1>
-  <hr>
-  <form method="post">
-    <table class="col-4">
-      <tr><td>Name:</td><td><input type="text" name="name"></td></tr>
-      <tr><td>Email:</td><td><input type="email" name="email"></td></tr>
-      <tr><td>Username:</td><td><input type="text" name="username"></td></tr>
-      <tr><td>Password:</td><td><input type="password" name="password"></td></tr>
-      <tr><td>Confirm Password:</td><td><input type="password" name="confirm_password"></td></tr>
-    </table>
+<div class="container md-5">
+
+  <body>
+    <h1>Register</h1>
     <hr>
-    <input type="submit" value="Register">
-  </form>
-  <br />
-  <p> {% with messages = get_flashed_messages() %}
-    {% if messages %}
-    {% for message in messages %}
-    {{ message }}
-    {% endfor %}
-    {% endif %}
-    {% endwith %} </p>
-  <nav>
-    <a href="/login">Login</a>
-  </nav>
-</body>
+    <form name="registerForm" method="post" onsubmit="return validateForm()">
+      <table class="col-4">
+        <tr>
+          <td>Name:</td>
+          <td><input type="text" name="name"></td>
+        </tr>
+        <tr>
+          <td>Email:</td>
+          <td><input type="email" name="email"></td>
+        </tr>
+        <tr>
+          <td>Username:</td>
+          <td><input type="text" name="username"></td>
+        </tr>
+        <tr>
+          <td>Password:</td>
+          <td><input type="password" name="password"></td>
+        </tr>
+        <tr>
+          <td>Confirm Password:</td>
+          <td><input type="password" name="confirm_password"></td>
+        </tr>
+      </table>
+      <hr>
+      <input type="submit" value="Register">
+    </form>
+    <br />
+    <p> {% with messages = get_flashed_messages() %}
+      {% if messages %}
+      {% for message in messages %}
+      {{ message }}
+      {% endfor %}
+      {% endif %}
+      {% endwith %} </p>
+    <nav>
+      <a href="/login">Login</a>
+    </nav>
+  </body>
+</div>
 
 {% endblock content %}
