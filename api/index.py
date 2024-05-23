@@ -21,11 +21,55 @@ db = mongo[DB_NAME]
 users_collection = db["streamlit_users"]
 draft_collection = db["draft"]
 
+### methods ########################################
+def create_roster_collection_2023():
+  ### uncomment this to override the collection protection lock
+  upcoming_season_collection.delete_many({})
+
+  # Only reset collection if lock not present
+  try:
+    check_lock = upcoming_season_collection.find_one( {"collection_lock": True } )
+    if check_lock:
+      print("Sorry, cannot delete this collection. Collection is currently locked.\nSee create_roster_collection_2023().")
+      return
+
+    upcoming_season_collection.delete_many({})
+
+  except ConnectionError as e:
+    print(f"An error occurred: {e}")
+
+  # Only get players under contract for next season
+  players_under_contract = list(franchise_tag_collection.find({"contract.y1_cost": {"$exists":True}}))
+
+  players_under_contract_list = []
+  for player in players_under_contract:
+    del(player['_id'])
+    player['season'] = upcoming_season
+    player['needs_contract_status']=False
+    # print(json.dumps(player, indent=2))
+    player['contract']['y0_cost'] = player['contract']['y1_cost']
+    del(player['contract']['y1_cost'])
+    player['contract']['contract_years_left'] = 1
+    player['contract']['free_agent_before_season'] = upcoming_season + 1
+    if player['contract'].get('y2_cost') is not None:
+      player['contract']['y1_cost'] = player['contract']['y2_cost']
+      del(player['contract']['y2_cost'])
+      player['contract']['contract_years_left'] = 2
+      player['contract']['free_agent_before_season'] = upcoming_season + 2
+    players_under_contract_list.append(player)
+
+  upcoming_season_collection.insert_many(players_under_contract_list)
+
 ### CHANGE ME ########################################
 current_season = 2023
 upcoming_season = 2024
 upcoming_season_collection = db[f"roster_{upcoming_season}"]
 franchise_tag_collection = db[f"roster_{upcoming_season}_ft"]
+
+# resets the collection
+# create_upcoming_season_collection(next_year=upcoming_season)
+
+create_roster_collection_2023()
 ######################################################
 
 login_manager = LoginManager()
@@ -266,7 +310,8 @@ def update_franchise_tags():
         {"$set": {"contract.franchise_tag_allowed": False}}
     )
 
-    franchise_tag_collection.update_many({}, {"$set": {"collection_delete_lock": True}})
+    # franchise_tag_collection.update_many({}, {"$set": {"collection_delete_lock": True}})
+    create_roster_collection_2023()
 
     for item in updates:
         update_data = {}
@@ -345,45 +390,6 @@ def update_taxi_squad():
             )
     return jsonify({"message": "Taxi squad updated successfully!"}), 200
 
-
-# @app.route('/updatetaxisquad', methods=['POST'])
-# @login_required
-# def update_taxi_squad():
-#     data = request.json
-#     for item in data:
-#         _id = item.get('_id')
-#         y0_cost = item.get('y1_cost')
-#         y1_cost = item.get('y2_cost')
-#         y2_cost = item.get('y3_cost')
-#         if _id:
-#             update_data = {
-#                 "contract.taxi_designation": False,
-#                 "contract.y0_cost": y0_cost,
-#                 "contract.y1_cost": y1_cost,
-#                 "contract.y2_cost": y2_cost
-#             }
-#             unset_data = {
-#                 "contract.y3_cost": ""
-#             }
-#             franchise_tag_collection.update_one(
-#                 {"_id": ObjectId(_id)},
-#                 {"$set": update_data, "$unset": unset_data}
-#             )
-#     return jsonify({"message": "Taxi squad updated successfully!"}), 200
-
-
-# @app.route('/updatetaxisquad', methods=['POST'])
-# @login_required
-# def update_taxi_squad():
-#     data = request.json
-#     for item in data:
-#         _id = item.get('_id')
-#         if _id:
-#             franchise_tag_collection.update_one(
-#                 {"_id": ObjectId(_id)},
-#                 {"$set": {"contract.taxi_designation": False}}
-#             )
-#     return jsonify({"message": "Taxi squad updated successfully!"}), 200
 
 
 
