@@ -132,6 +132,13 @@ textarea.success {
   height: 1.6rem;
 }
 
+.checkbox-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+}
+
 /* BUTTONS */
 
 .button + .button {

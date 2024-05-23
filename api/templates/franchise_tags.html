@@ -5,7 +5,7 @@
     <div class="container mt-5">
         <div class="row mb-3">
             <div class="col-2">
-                Team: 
+                Team:
                 <select id="userFilter" class="form-control">
                     <option value="">-- show all --</option>
                     {% for user in users %}
@@ -19,12 +19,15 @@
             <table class="table">
                 <thead style="background-color: white;">
                     <tr id="totalsRow">
-                        <td colspan="2"><h3>{{ title }}</h3></td>
+                        <td colspan="2">
+                            <h3>{{ title }}</h3>
+                        </td>
                         <td colspan="2" style="text-align:right">Contract totals</td>
                         <td id="totalY0">0</td>
                         <td id="totalY1">0</td>
                         <td id="totalY2">0</td>
-                        <td colspan="2"><button type="submit" class="btn btn-primary" style="float: right;">Save Changes</button></td>
+                        <td colspan="2"><button type="submit" class="btn btn-primary" style="float: right;">Save
+                                Changes</button></td>
                     </tr>
                 </thead>
                 <thead>
@@ -48,14 +51,20 @@
                         <td>{{ result['team_name'] }}</td>
                         <td>{{ result['player_name'] }}</td>
                         <td>{{ result['position'] }}</td>
-                        <td style="background-color: rgb(213, 213, 213);">{{ "%.0f"|format(result['contract_y0_cost']) }}</td>
-                        <td id="y1_{{ loop.index0 }}">{{ "%.0f"|format(result['contract_y1_cost']) if result['contract_y1_cost'] else '' }}</td>
-                        <td id="y2_{{ loop.index0 }}">{{ "%.0f"|format(result['contract_y2_cost']) if result['contract_y2_cost'] else ''}}</td>
+                        <td style="background-color: rgb(213, 213, 213);">{{ "%.0f"|format(result['contract_y0_cost'])
+                            }}</td>
+                        <td id="y1_{{ loop.index0 }}">{{ "%.0f"|format(result['contract_y1_cost']) if
+                            result['contract_y1_cost'] else '' }}</td>
+                        <td id="y2_{{ loop.index0 }}">{{ "%.0f"|format(result['contract_y2_cost']) if
+                            result['contract_y2_cost'] else ''}}</td>
                         <td>{{ result['free_agent_before_season'] }}</td>
                         <td>
-                            {% if (result['franchise_tag_allowed'] and result['team_name'] == current_username) or (result['franchise_tag_allowed'] and admin_status) %}
-                            <input type="checkbox" class="contract-checkbox"
-                                data-index="{{ loop.index0 }}" data-y0="{{ result['contract_y0_cost'] }}">
+                            {% if (result['franchise_tag_allowed'] and result['team_name'] == current_username) or
+                            (result['franchise_tag_allowed'] and admin_status) %}
+                            <div class="checkbox-wrapper">
+                                <input type="checkbox" class="contract-checkbox" data-index="{{ loop.index0 }}"
+                                    data-y0="{{ result['contract_y0_cost'] }}">
+                            </div>
                             {% elif result['team_name'] == current_username %}
                             -- under contract --
                             {% else %}
@@ -77,14 +86,14 @@
     <script>
         function updateTotals() {
             var totalY0 = 0, totalY1 = 0, totalY2 = 0;
-    
+
             // Only sum values from visible rows after filtering
             $('#endSeasonRoster tr:visible').each(function () {
                 totalY0 += parseFloat($(this).find('td:eq(4)').text()) || 0;
                 totalY1 += parseFloat($(this).find('td[id^="y1_"]').text()) || 0;
                 totalY2 += parseFloat($(this).find('td[id^="y2_"]').text()) || 0;
             });
-    
+
             // Update the totals in the footer
             $('#totalY0').text('$' + totalY0.toFixed(0));
             $('#totalY1').text('$' + totalY1.toFixed(0));
@@ -99,36 +108,36 @@
                 $('.contract-checkbox').prop('disabled', false);
             }
         }
-    
+
         $(document).ready(function () {
             $('#userFilter').on('change', function () {
                 var userFilter = $('#userFilter').val().toLowerCase();
-    
+
                 $('#endSeasonRoster tr').filter(function () {
                     var isVisible = $(this).find('td:eq(1)').text().toLowerCase().indexOf(userFilter) > -1;
                     $(this).toggle(isVisible);
                     return isVisible;
                 });
-    
+
                 updateTotals();  // Recalculate totals based on visible rows
             });
-            
+
             $('.contract-checkbox').on('change', function () {
                 var index = $(this).data('index');
                 var y0 = parseFloat($(this).data('y0'));
                 var y1Element = $('#y1_' + index);
-    
+
                 if ($(this).is(':checked')) {
                     y1Element.text(Math.ceil(y0 * 1.2));
                 } else {
                     y1Element.text('');
                 }
-    
+
                 updateTotals();  // Recalculate totals based on changes
                 // Initial call to limit checkboxes based on current selections
                 limitCheckboxes();  // Limit checkboxes to 2 selections
             });
-            
+
             $('#updateForm').submit(function (e) {
                 e.preventDefault();
                 var draftUpdates = [];
@@ -167,7 +176,7 @@
                 }
             });
 
-            
+
             // Trigger the change event on page load to filter based on default values
             $('#userFilter').trigger('change');
 

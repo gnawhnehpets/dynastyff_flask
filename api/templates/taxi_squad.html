@@ -56,12 +56,15 @@
                         <td>{{ result['free_agent_before_season'] }}</td>
                         <td>
                             {% if admin_status and result['taxi_designation'] %}
-                            <input type="checkbox" class="taxi-checkbox" data-index="{{ loop.index0 }}"
-                                data-id="{{ result['_id'] }}" data-y0="{{ result['contract_y0_cost'] }}"
-                                data-y1="{{ result['contract_y1_cost'] }}" data-y2="{{ result['contract_y2_cost'] }}"
-                                data-y3="{{ result['contract_y3_cost'] }}"
-                                data-contract_years_left="{{ result['contract_years_left'] }}"
-                                data-free_agent_before_season="{{ result['free_agent_before_season'] }}">
+                            <div class="checkbox-wrapper">
+                                <input type="checkbox" class="taxi-checkbox" data-index="{{ loop.index0 }}"
+                                    data-id="{{ result['_id'] }}" data-y0="{{ result['contract_y0_cost'] }}"
+                                    data-y1="{{ result['contract_y1_cost'] }}"
+                                    data-y2="{{ result['contract_y2_cost'] }}"
+                                    data-y3="{{ result['contract_y3_cost'] }}"
+                                    data-contract_years_left="{{ result['contract_years_left'] }}"
+                                    data-free_agent_before_season="{{ result['free_agent_before_season'] }}">
+                            </div>
                             {% else %}
                             --- activated ---
                             {% endif %}
