@@ -74,6 +74,8 @@
                                     data-contract_years_left="{{ result['contract_years_left'] }}"
                                     data-free_agent_before_season="{{ result['free_agent_before_season'] }}">
                             </div>
+                            {% elif result['taxi_designation'] %}
+                            --- deactivated ---
                             {% else %}
                             --- activated ---
                             {% endif %}
