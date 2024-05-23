@@ -60,6 +60,17 @@ def create_roster_collection_2023():
 
   upcoming_season_collection.insert_many(players_under_contract_list)
 
+def updated_contract_activated_taxi_squad():
+  taxi_players = franchise_tag_collection.find({"contract.taxi_designation":True})
+  print(taxi_players)
+  for player in taxi_players:
+    franchise_tag_collection.update_one({ "player_name": player['player_name'], "contract.taxi_designation": True },
+                                        { "$set": { 'contract.y3_cost': player['contract']['y2_cost'],
+                                                    'contract.y2_cost': player['contract']['y1_cost'],
+                                                    'contract.y1_cost': player['contract']['y0_cost'],
+                                                    'contract.contract_years_left': player['contract']['contract_years_left']+1,
+                                                    'contract.free_agent_before_season': player['contract']['free_agent_before_season']+1,
+                                                    "contract.taxi_designation": False } } )
 ### CHANGE ME ########################################
 current_season = 2023
 upcoming_season = 2024
@@ -388,6 +399,8 @@ def update_taxi_squad():
                 {"_id": ObjectId(_id)},
                 {"$set": update_data, "$unset": unset_data}
             )
+    updated_contract_activated_taxi_squad()
+
     return jsonify({"message": "Taxi squad updated successfully!"}), 200
 
 

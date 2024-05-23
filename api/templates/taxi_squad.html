@@ -74,7 +74,7 @@
                                     data-contract_years_left="{{ result['contract_years_left'] }}"
                                     data-free_agent_before_season="{{ result['free_agent_before_season'] }}">
                             </div>
-                            {% elif result['taxi_designation'] %}
+                            {% elif result['taxi_designation'] and result['team_name'] != current_username %}
                             --- on taxi ---
                             {% else %}
                             --- activated ---
