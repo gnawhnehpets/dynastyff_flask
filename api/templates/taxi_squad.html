@@ -30,6 +30,7 @@
                         <td></td>
                         <td></td>
                         <td></td>
+                        <td></td>
                         <td colspan="2"><button type="submit" class="btn btn-primary" style="float: right;">Save
                                 Changes</button></td>
                     </tr>
@@ -43,6 +44,7 @@
                         <th>{{ latest_year-1 }}</th>
                         <th>{{ latest_year }}</th>
                         <th>{{ latest_year+1 }}</th>
+                        <th>{{ latest_year+2 }}</th>
                         <th>FA in Y</th>
                         <th>activate?</th>
                     </tr>
@@ -61,6 +63,9 @@
                             result['contract_y1_cost'] else '' }}</td>
                         <td id="y2_{{ loop.index0 }}">{{ "%.0f"|format(result['contract_y2_cost']) if
                             result['contract_y2_cost'] else ''}}</td>
+                        <td id="y3_{{ loop.index0 }}">{{ "%.0f"|format(result['contract_y3_cost']) if
+                            result['contract_y3_cost'] else ''}}</td>
+                            
                         <td>{{ result['free_agent_before_season'] }}</td>
                         <td>
                             {% if (result['team_name'] == current_username and result['taxi_designation']) or
@@ -68,6 +73,7 @@
                             <div class="checkbox-wrapper">
                                 <input type="checkbox" class="taxi-checkbox" data-index="{{ loop.index0 }}"
                                     data-id="{{ result['_id'] }}" data-y0="{{ result['contract_y0_cost'] }}"
+                                    data-player_name="{{ result['player_name'] }}"
                                     data-y1="{{ result['contract_y1_cost'] }}"
                                     data-y2="{{ result['contract_y2_cost'] }}"
                                     data-y3="{{ result['contract_y3_cost'] }}"
@@ -99,12 +105,14 @@
                 totalY0 += parseFloat($(this).find('td:eq(4)').text()) || 0;
                 totalY1 += parseFloat($(this).find('td[id^="y1_"]').text()) || 0;
                 totalY2 += parseFloat($(this).find('td[id^="y2_"]').text()) || 0;
+                totalY3 += parseFloat($(this).find('td[id^="y3_"]').text()) || 0;
             });
 
             // Update the totals in the footer
             $('#totalY0').text('$' + totalY0.toFixed(0));
             $('#totalY1').text('$' + totalY1.toFixed(0));
             $('#totalY2').text('$' + totalY2.toFixed(0));
+            $('#totalY3').text('$' + totalY3.toFixed(0));
         }
 
         $(document).ready(function () {
@@ -128,17 +136,23 @@
                     var checkbox = row.find('.taxi-checkbox');
                     if (checkbox.is(':checked')) {
                         var _id = checkbox.data('id');
+                        var player_name = checkbox.data('player_name');
                         var y0_cost = checkbox.data('y0');
                         var y1_cost = checkbox.data('y1');
                         var y2_cost = checkbox.data('y2');
                         var y3_cost = checkbox.data('y3');  // Ensure y3_cost is captured
-                        var contract_years_left = checkbox.data('contract_years_left') - 1;
-                        var free_agent_before_season = checkbox.data('free_agent_before_season') - 1;
+                        var contract_years_left = checkbox.data('contract_years_left');
+                        var free_agent_before_season = checkbox.data('free_agent_before_season');
                         taxiUpdates.push({
                             _id: _id,
-                            y0_cost: y1_cost,
-                            y1_cost: y2_cost,
-                            y2_cost: y3_cost,
+                            player_name: player_name,
+                            y0_cost: y0_cost,
+                            y1_cost: y1_cost,
+                            y2_cost: y2_cost,
+                            y3_cost: y3_cost,
+                            // y0_cost: y1_cost,
+                            // y1_cost: y2_cost,
+                            // y2_cost: y3_cost,
                             contract_years_left: contract_years_left,
                             free_agent_before_season: free_agent_before_season
                         });

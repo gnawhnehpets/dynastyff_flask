@@ -26,6 +26,7 @@
                         <td id="totalY0">0</td>
                         <td id="totalY1">0</td>
                         <td id="totalY2">0</td>
+                        <td id="totalY3">0</td>
                         <td colspan="2"><button type="submit" class="btn btn-primary" style="float: right;">Save
                                 Changes</button></td>
                     </tr>
@@ -39,6 +40,7 @@
                         <th>{{ latest_year }}</th>
                         <th>{{ latest_year+1 }}</th>
                         <th>{{ latest_year+2 }}</th>
+                        <th>{{ latest_year+3 }}</th>
                         <th>FA in Y</th>
                         <th>contract</th>
                     </tr>
@@ -57,6 +59,8 @@
                             result['contract_y1_cost'] else '' }}</td>
                         <td id="y2_{{ loop.index0 }}">{{ "%.0f"|format(result['contract_y2_cost']) if
                             result['contract_y2_cost'] else ''}}</td>
+                        <td id="y3_{{ loop.index0 }}">{{ "%.0f"|format(result['contract_y3_cost']) if
+                            result['contract_y3_cost'] else ''}}</td>
                         <td>{{ result['free_agent_before_season'] }}</td>
                         <td>
                             {% if (result['franchise_tag_allowed'] and result['team_name'] == current_username) or
@@ -92,12 +96,14 @@
                 totalY0 += parseFloat($(this).find('td:eq(4)').text()) || 0;
                 totalY1 += parseFloat($(this).find('td[id^="y1_"]').text()) || 0;
                 totalY2 += parseFloat($(this).find('td[id^="y2_"]').text()) || 0;
+                totalY3 += parseFloat($(this).find('td[id^="y3_"]').text()) || 0;
             });
 
             // Update the totals in the footer
             $('#totalY0').text('$' + totalY0.toFixed(0));
             $('#totalY1').text('$' + totalY1.toFixed(0));
             $('#totalY2').text('$' + totalY2.toFixed(0));
+            $('#totalY3').text('$' + totalY3.toFixed(0));
         }
 
         function limitCheckboxes() {
