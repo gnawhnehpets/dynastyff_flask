@@ -1,0 +1,188 @@
+{% extends "base.html" %}
+{% block content %}
+
+<body>
+    <div class="container mt-5">
+        <div class="row mb-3">
+            <div class="col-12">
+                <h1>{{ title }}</h1>
+            </div>
+        </div>
+
+        {% for user in users %}
+        <div class="owner-section">
+            <form id="updateForm-{{ user }}">
+                <table class="table">
+                    <thead style="background-color: white;">
+                        <tr id="totalsRow-{{ user }}">
+                            <td colspan="2">
+                                <h3>Team: {{ user }}</h3>
+                            </td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                        </tr>
+                    </thead>
+                    <thead>
+                        <tr>
+                            <th>season</th>
+                            <th>team</th>
+                            <th>player</th>
+                            <th>pos</th>
+                            <th id="headerY0-{{ user }}">{{ latest_year }}</th>
+                            <th id="headerY1-{{ user }}">{{ latest_year + 1 }}</th>
+                            <th id="headerY2-{{ user }}">{{ latest_year + 2 }}</th>
+                            <th>FA in Y</th>
+                            <th>contract</th>
+                        </tr>
+                    </thead>
+                    <tbody id="draftResults-{{ user }}">
+                        {% for result in results if result['team_name'] == user %}
+                        <tr data-id="{{ result['_id'] }}">
+                            <td>{{ result['season'] }}</td>
+                            <td>{{ result['team_name'] }}</td>
+                            <td>{{ result['player_name'] }}</td>
+                            <td>{{ result['position'] }}</td>
+                            <td>{{ "%.0f"|format(result['contract_y0_cost']) }}</td>
+                            <td id="y1_{{ loop.index0 }}-{{ user }}">{{ "%.0f"|format(result['contract_y1_cost']) if
+                                result['contract_y1_cost'] else '' }}</td>
+                            <td id="y2_{{ loop.index0 }}-{{ user }}">{{ "%.0f"|format(result['contract_y2_cost']) if
+                                result['contract_y2_cost'] else '' }}</td>
+                            <td>{{ result['free_agent_before_season'] }}</td>
+                            <td>
+                                {% if (result['needs_contract'] and result['team_name'] == current_username) or
+                                (result['needs_contract'] and admin_status) %}
+                                <input type="range" min="1" max="3" value="{{ result['slider_position'] }}"
+                                    class="slider" data-index="{{ loop.index0 }}"
+                                    data-y0="{{ result['contract_y0_cost'] }}">
+                                {% elif result['team_name'] == current_username %}
+                                -- under contract --
+                                {% else %}
+                                --- not on roster ---
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                    <tfoot style="background-color: white;">
+                        <tr id="totalsRow-{{ user }}">
+                            <td></td>
+                            <td></td>
+                            <td colspan="2" style="text-align:right">Contract totals</td>
+                            <td id="totalY0-{{ user }}">0</td>
+                            <td id="totalY1-{{ user }}">0</td>
+                            <td id="totalY2-{{ user }}">0</td>
+                            <td colspan="2"></td>
+                        </tr>
+                        {% if penalties[user] %}
+                        {% for penalty in penalties[user] %}
+                        <tr id="totalsRow-{{ user }}">
+                            <td></td>
+                            <td></td>
+                            <td colspan="2" style="text-align:right">{{ penalty['player_name'] }}</td>
+                            <td>${{ penalty['total_penalty'] }}</td>
+                            <td></td>
+                            <td></td>
+                            <td colspan="2"></td>
+                        </tr>
+                        {% endfor %}
+                        {% endif %}
+                    </tfoot>
+                </table>
+                <hr>
+            </form>
+        </div>
+        {% endfor %}
+    </div>
+
+    <script>
+        function updateTotals(user) {
+            var totalY0 = 0, totalY1 = 0, totalY2 = 0;
+
+            $('#draftResults-' + user + ' tr').each(function () {
+                totalY0 += parseFloat($(this).find('td:eq(4)').text()) || 0;
+                totalY1 += parseFloat($(this).find('td[id^="y1_"]').text()) || 0;
+                totalY2 += parseFloat($(this).find('td[id^="y2_"]').text()) || 0;
+            });
+
+            $('#totalY0-' + user).text('$' + totalY0.toFixed(0));
+            $('#totalY1-' + user).text('$' + totalY1.toFixed(0));
+            $('#totalY2-' + user).text('$' + totalY2.toFixed(0));
+        }
+
+        $(document).ready(function () {
+            // $('.slider').on('input change', function () {
+            //     var action = parseInt($(this).val());
+            //     var index = $(this).data('index');
+            //     var user = $(this).closest('tbody').attr('id').split('-')[1];
+            //     var y0 = parseFloat($(this).data('y0'));
+            //     var y1Element = $('#y1_' + index + '-' + user);
+            //     var y2Element = $('#y2_' + index + '-' + user);
+
+            //     if (action === 1) {
+            //         y1Element.text('');
+            //         y2Element.text('');
+            //     } else if (action === 2) {
+            //         y1Element.text(Math.ceil(y0 * 1.2));
+            //         y2Element.text('');
+            //     } else if (action === 3) {
+            //         var y1 = Math.ceil(y0 * 1.2);
+            //         y1Element.text(y1);
+            //         y2Element.text(Math.ceil(y1 * 1.2));
+            //     }
+
+            //     updateTotals(user);  // Recalculate totals based on the changes
+            // });
+
+            $('[id^=updateForm]').submit(function (e) {
+                e.preventDefault();
+                var user = $(this).attr('id').split('-')[1];
+                var draftUpdates = [];
+                $('#draftResults-' + user + ' tr').each(function () {
+                    var row = $(this);
+                    var action = row.find('.slider').val();
+                    if (action === "2" || action === "3") {
+                        var _id = row.data('id');
+                        var y1 = (action === "2" || action === "3") ? parseFloat(row.find('#y1_' + row.index() + '-' + user).text()) : null;
+                        var y2 = (action === "3") ? parseFloat(row.find('#y2_' + row.index() + '-' + user).text()) : null;
+                        draftUpdates.push({
+                            _id: _id,
+                            y1: y1,
+                            y2: y2
+                        });
+                    }
+                });
+
+                if (draftUpdates.length > 0) {
+                    $.ajax({
+                        url: '/updatecontracts',
+                        type: 'POST',
+                        contentType: 'application/json',
+                        data: JSON.stringify(draftUpdates),
+                        success: function (response) {
+                            alert('Data updated successfully!');
+                            window.location.reload();
+                        },
+                        error: function (error) {
+                            alert('Error updating data');
+                            console.log(error);
+                        }
+                    });
+                } else {
+                    alert('No changes to save.');
+                }
+            });
+
+            // Trigger the updateTotals function on page load to calculate totals for each user
+            {% for user in users %}
+            updateTotals('{{ user }}');
+            {% endfor %}
+        });
+    </script>
+</body>
+
+{% endblock content %}

@@ -5,15 +5,15 @@
 ## Running app
 Set flaskapp to environment variable
 
-`export FLASK_APP=dynasty.py`
+`export FLASK_APP=index.py`
 
-Run the application
+Run the application from `~./api`
 
 `flask run`
 
 or 
 
-`python dynasty.py`
+`python index.py`
 
 Running in debug mode. Set before running
 

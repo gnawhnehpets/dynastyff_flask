@@ -62,6 +62,9 @@ def create_roster_collection_2023():
 
 
 ### CHANGE ME ########################################
+# current_season = 2022
+# upcoming_season = 2023
+
 current_season = 2023
 upcoming_season = 2024
 upcoming_season_collection = db[f"roster_{upcoming_season}"]
@@ -193,14 +196,15 @@ def draft_results():
                            seasons=seasons,
                            users=users.keys(),
                            results=draft,
-                           title="Set player contracts",
+                           title="",
                            latest_year=latest_year,
                            current_username=current_username,
                            admin_status=users.get(current_username))
 
-@app.route("/setcontracts")
+
+@app.route("/predraft")
 @login_required
-def set_contracts():
+def predraft_budgets():
     seasons = upcoming_season_collection.distinct("season")
     latest_year = max(seasons) if seasons else None
 
@@ -225,6 +229,74 @@ def set_contracts():
             "free_agent_before_season": "$contract.free_agent_before_season",
         }},
         {"$sort": {"team_name": 1} }
+    ]))
+
+    post_season_cut_penalties = list(upcoming_season_collection.aggregate([
+        {"$match": {"penalty_type": "post_season_cuts"}},
+        {"$project": {
+            "_id": 1,
+            "team_name": 1,
+            "details": 1
+        }}
+    ]))
+
+    penalties = {}
+    for penalty in post_season_cut_penalties:
+        team_name = penalty['team_name']
+        if team_name not in penalties:
+            penalties[team_name] = []
+        for detail in penalty['details']:
+            player_name = detail['player_name']
+            y1_penalty = detail['penalty'].get('y1_penalty', 0)
+            y2_penalty = detail['penalty'].get('y2_penalty', 0)
+            total_penalty = y1_penalty + y2_penalty
+            penalties[team_name].append({
+                'player_name': player_name,
+                'total_penalty': total_penalty
+            })
+    logging.debug(penalties)
+    current_username = current_user.username
+    return render_template("predraft.html",
+                           seasons=seasons,
+                           users=users.keys(),
+                           results=season_collection,
+                           penalties=penalties,
+                           title="Auction budgets",
+                           latest_year=latest_year,
+                           current_username=current_username,
+                           admin_status=users.get(current_username))
+
+
+
+
+@app.route("/setcontracts")
+@login_required
+def set_contracts():
+    seasons = upcoming_season_collection.distinct("season")
+    latest_year = max(seasons) if seasons else None
+    # latest_year = upcoming_season
+
+    users_list = list(users_collection.find({"username": {"$exists": True}}))
+    users = {u['username']: u['admin_status'] for u in users_list}
+
+    season_collection = list(upcoming_season_collection.aggregate([
+        {"$match": {"player_name": {"$exists": True}}},
+        {"$project": {
+            "_id": 1,
+            "season": 1,
+            "draft_type": 1,
+            "pick_no": 1,
+            "player_name": 1,
+            "team_name": 1,
+            "needs_contract_status": 1,
+            "position": "$metadata.position",
+            "contract_y0_cost": {"$ifNull": ["$contract.y0_cost", 0]},
+            "contract_y1_cost": {"$ifNull": ["$contract.y1_cost", 0]},
+            "contract_y2_cost": {"$ifNull": ["$contract.y2_cost", 0]},
+            "contract_years_left": "$contract.contract_years_left",
+            "free_agent_before_season": "$contract.free_agent_before_season",
+        }},
+        {"$sort": {"team_name": 1, "contract_y0_cost": -1} }
     ]))
 
     for item in season_collection:
@@ -288,8 +360,9 @@ def set_franchise_tag():
         "contract_years_left": "$contract.contract_years_left",
         "free_agent_before_season": "$contract.free_agent_before_season",
         "franchise_tag_allowed": "$contract.franchise_tag_allowed",
-        "franchise_tag_used": "$contract.franchise_tag_used"
-    }).sort([("team_name", 1)]))
+        "franchise_tag_used": "$contract.franchise_tag_used",
+        "franchise_tag_eligible": "$contract.franchise_tag_eligible"
+    }).sort({"team_name":1, "contract_y0_cost": -1}))
 
     current_username = current_user.username
     return render_template("franchise_tags.html",
@@ -308,10 +381,10 @@ def update_franchise_tags():
     updates = data.get('updates', [])
     ids_to_update = data.get('ids_to_update', [])
 
-    franchise_tag_collection.update_many(
-        {"_id": {"$in": [ObjectId(_id) for _id in ids_to_update]}},
-        {"$set": {"contract.franchise_tag_allowed": False}}
-    )
+    # franchise_tag_collection.update_many(
+    #     {"_id": {"$in": [ObjectId(_id) for _id in ids_to_update]}},
+    #     {"$set": {"contract.franchise_tag_allowed": False}}
+    # )
 
     # franchise_tag_collection.update_many({}, {"$set": {"collection_delete_lock": True}})
     # create_roster_collection_2023()
@@ -322,15 +395,47 @@ def update_franchise_tags():
             update_data['contract.y1_cost'] = item['franchise_cost']
             update_data['contract.franchise_tag_allowed'] = False
             update_data['contract.franchise_tag_used'] = True
+            update_data['contract.contract_years_left'] = 1
 
         if update_data:
             franchise_tag_collection.update_one(
-                {"_id": ObjectId(item["_id"])},
+                {"_id": ObjectId(item["_id"]) },
                 {"$set": update_data}
             )
     return jsonify({"message": "Data updated successfully!"}), 200
 
+@app.route("/nominaterfa")
+@login_required
+def nominate_rfa():
+    users_list = list(users_collection.find({"username": {"$exists": True}}))
+    users = {u['username']: u['admin_status'] for u in users_list}
 
+    roster = list(franchise_tag_collection.find({"contract.contract_years_left": 0 }, {
+        "_id": 1,
+        "season": 1,
+        "player_name": 1,
+        "team_name": 1,
+        "position": "$metadata.position",
+        "contract_y0_cost": {"$ifNull": ["$contract.y0_cost", 0]},
+        "contract_y1_cost": {"$ifNull": ["$contract.y1_cost", 0]},
+        "contract_y2_cost": {"$ifNull": ["$contract.y2_cost", 0]},
+        "contract_y3_cost": {"$ifNull": ["$contract.y3_cost", 0]},
+        "contract_years_left": "$contract.contract_years_left",
+        "free_agent_before_season": "$contract.free_agent_before_season",
+        "franchise_tag_allowed": "$contract.franchise_tag_allowed",
+        "franchise_tag_used": "$contract.franchise_tag_used",
+        "franchise_tag_eligible": "$contract.franchise_tag_eligible"
+    }).sort({"team_name":1, "contract_y0_cost": -1}))
+
+    current_username = current_user.username
+    return render_template("rfa_nominations.html",
+                           seasons=[upcoming_season-1],
+                           users=users.keys(),
+                           results=roster,
+                           title="Set nominations",
+                           latest_year=upcoming_season-1,
+                           current_username=current_username,
+                           admin_status=users.get(current_username))
 
 
 @app.route("/managetaxisquad")

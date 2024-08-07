@@ -72,14 +72,12 @@
                         <td style="text-align: center";>
                             {% if (result['franchise_tag_eligible'] == false) %}
                             <strong>---- ineligible ----</strong>
-                            {% elif (result['franchise_tag_allowed'] and result['franchise_tag_used'] != true and result['team_name'] == current_username) or
-                            (result['franchise_tag_allowed'] and result['franchise_tag_used'] != true and admin_status) %}
+                            {% elif (result['franchise_tag_allowed'] and result['team_name'] == current_username) or
+                            (result['franchise_tag_allowed'] and admin_status) %}
                             <div class="checkbox-wrapper">
                                 <input type="checkbox" class="contract-checkbox" data-index="{{ loop.index0 }}"
                                     data-y0="{{ result['contract_y0_cost'] }}">
                             </div>
-                            {% elif (result['franchise_tag_allowed'] and result['franchise_tag_used'] == true ) %}
-                            <strong>------ ineligible ------</strong>
                             {% elif (result['franchise_tag_used'] == true) %}
                             <strong>------ tagged ------</strong>
                             {% elif (result['team_name'] == current_username) %}
