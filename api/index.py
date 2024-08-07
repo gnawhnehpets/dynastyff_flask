@@ -347,7 +347,8 @@ def set_franchise_tag():
     users_list = list(users_collection.find({"username": {"$exists": True}}))
     users = {u['username']: u['admin_status'] for u in users_list}
 
-    roster = list(franchise_tag_collection.find({"contract": {"$exists": True}}, {
+    # roster = list(franchise_tag_collection.find({"contract": {"$exists": True}}, {
+    roster = list(franchise_tag_collection.find({"contract.franchise_tag_allowed": True}, {
         "_id": 1,
         "season": 1,
         "player_name": 1,
