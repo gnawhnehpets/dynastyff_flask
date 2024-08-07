@@ -54,7 +54,7 @@
                         <td>{{ result['team_name'] }}</td>
                         <!-- <td>{{ result['player_name'] }}</td> -->
                         <td>{% if (result['franchise_tag_used'] == true) %}
-                            <strong>{{ result['player_name'] }}</strong>
+                            <s>{{ result['player_name'] }}</s>
                             {% else %}
                             {{ result['player_name'] }}
                             {% endif %}
@@ -79,7 +79,7 @@
                                     data-y0="{{ result['contract_y0_cost'] }}">
                             </div>
                             {% elif (result['franchise_tag_allowed'] and result['franchise_tag_used'] == true ) %}
-                            <strong>------ ineligible ------</strong>
+                            ------ ineligible ------
                             {% elif (result['franchise_tag_used'] == true) %}
                             <strong>------ tagged ------</strong>
                             {% elif (result['team_name'] == current_username) %}
