@@ -27,7 +27,7 @@
                         <td id="totalY1">0</td>
                         <td id="totalY2">0</td>
                         <td id="totalY3">0</td>
-                        <td colspan="2"><button type="submit" class="btn btn-primary" style="float: right;">Save
+                        <td colspan="3"><button type="submit" class="btn btn-primary" style="float: right;">Save
                                 Changes</button></td>
                     </tr>
                 </thead>
@@ -41,9 +41,9 @@
                         <th>{{ latest_year+1 }}</th>
                         <th>{{ latest_year+2 }}</th>
                         <th>{{ latest_year+3 }}</th>
-                        <!-- <th>FA in Y</th> -->
-                        <th>contract years left</th> 
-                        <th>contract</th>
+                        <th>contract length</th>
+                        <th>$/year</th>
+                        <th>total contract cost</th>
                     </tr>
                 </thead>
                 <tbody id="endSeasonRoster">
@@ -52,7 +52,6 @@
                     <tr data-id="{{ result['_id'] }}">
                         <td>{{ result['season'] }}</td>
                         <td>{{ result['team_name'] }}</td>
-                        <!-- <td>{{ result['player_name'] }}</td> -->
                         <td>{% if (result['franchise_tag_used'] == true) %}
                             <s>{{ result['player_name'] }}</s>
                             {% else %}
@@ -68,34 +67,15 @@
                             result['contract_y2_cost'] else ''}}</td>
                         <td id="y3_{{ loop.index0 }}">{{ "%.0f"|format(result['contract_y3_cost']) if
                             result['contract_y3_cost'] else ''}}</td>
-                        <td>{{ result['contract_years_left'] }}</td>
-                        <td style="text-align: center";>
-                            {% if (result['franchise_tag_eligible'] == false) %}
-                            <strong>---- ineligible ----</strong>
-                            {% elif (result['franchise_tag_allowed'] and 
-                                    result['franchise_tag_used'] != true and 
-                                    result['rfa_nominated'] != true and
-                                    result['team_name'] == current_username) 
-                                or (result['franchise_tag_allowed'] and 
-                                    result['franchise_tag_used'] != true and 
-                                    result['rfa_nominated'] != true and
-                                    admin_status) %}
-                            <div class="checkbox-wrapper">
-                                <input type="checkbox" class="contract-checkbox" data-index="{{ loop.index0 }}"
-                                    data-y0="{{ result['contract_y0_cost'] }}">
-                            </div>
-                            {% elif (result['franchise_tag_allowed'] and result['franchise_tag_used'] == true ) %}
-                            ------ ineligible ------
-                            {% elif (result['franchise_tag_used'] == true) %}
-                            ------ tagged ------
-                            {% elif (result['rfa_nominated'] == true) %}
-                            ---- nominated ----
-                            {% elif (result['team_name'] == current_username) %}
-                            -- under contract --
-                            {% else %}
-                            --- not on roster ---
-                            {% endif %}
+                        <td>
+                            <input type="range" min=1 max=3 value="{{ result['contract_years_left'] or 1 }}" class="contract-length-slider"
+                                data-index="{{ loop.index0 }}">
                         </td>
+                        <td>
+                            <input type="number" class="form-control contract-value-input"
+                                data-index="{{ loop.index0 }}" value="{{ result['contract_y1_cost'] or '' }}">
+                        </td>
+                        <td id="total_cost_{{ loop.index0 }}">0</td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -104,8 +84,6 @@
             <hr>
             <button type="submit" class="btn btn-primary">Save Changes</button>
         </form>
-
-
     </div>
 
     <script>
@@ -127,13 +105,15 @@
             $('#totalY3').text('$' + totalY3.toFixed(0));
         }
 
-        function limitCheckboxes() {
-            var checkedCount = $('.contract-checkbox:checked').length;
-            if (checkedCount >= 2) {
-                $('.contract-checkbox').not(':checked').prop('disabled', true);
-            } else {
-                $('.contract-checkbox').prop('disabled', false);
-            }
+        function updateTotalContractCost() {
+            $('#endSeasonRoster tr').each(function () {
+                var row = $(this);
+                var index = row.find('.contract-length-slider').data('index');
+                var contractLength = parseFloat(row.find('.contract-length-slider').val()) || 0;
+                var contractValue = parseFloat(row.find('.contract-value-input').val()) || 0;
+                var totalCost = contractLength * contractValue;
+                $('#total_cost_' + index).text(totalCost.toFixed(0));
+            });
         }
 
         $(document).ready(function () {
@@ -149,46 +129,30 @@
                 updateTotals();  // Recalculate totals based on visible rows
             });
 
-            $('.contract-checkbox').on('change', function () {
-                var index = $(this).data('index');
-                var y0 = parseFloat($(this).data('y0'));
-                var y1Element = $('#y1_' + index);
-
-                if ($(this).is(':checked')) {
-                    y1Element.text(Math.ceil(y0 * 1.2));
-                } else {
-                    y1Element.text('');
-                }
-
-                updateTotals();  // Recalculate totals based on changes
-                // Initial call to limit checkboxes based on current selections
-                limitCheckboxes();  // Limit checkboxes to 2 selections
-            });
-
             $('#updateForm').submit(function (e) {
                 e.preventDefault();
-                var draftUpdates = [];
-                var filteredIds = [];
+                var pendingUpdates = [];
                 $('#endSeasonRoster tr:visible').each(function () {
                     var row = $(this);
                     var _id = row.data('id');  // Ensure you have data-id attribute on each row
-                    filteredIds.push(_id);
-                    var checkbox = row.find('.contract-checkbox');
-                    if (checkbox.is(':checked')) {
-                        var y1 = parseFloat(row.find('#y1_' + row.index()).text()) || null;
-                        draftUpdates.push({
-                            _id: _id,
-                            franchise_cost: y1
-                        });
-                    }
+                    var contractLength = parseInt(row.find('.contract-length-slider').val(), 10);
+                    var contractValue = parseInt(row.find('.contract-value-input').val(), 10) || 0;
+
+                    var updateData = {
+                        _id: _id,
+                        contract_length: contractLength,
+                        contract_value: contractValue
+                    };
+
+                    pendingUpdates.push(updateData);
                 });
 
-                if (filteredIds.length > 0) {
+                if (pendingUpdates.length > 0) {
                     $.ajax({
-                        url: '/updatefranchisetags',
+                        url: '/updaterfacontracts',
                         type: 'POST',
                         contentType: 'application/json',
-                        data: JSON.stringify({ updates: draftUpdates, ids_to_update: filteredIds }),
+                        data: JSON.stringify({ updates: pendingUpdates }),
                         success: function (response) {
                             alert('Data updated successfully!');
                             window.location.reload();
@@ -203,13 +167,15 @@
                 }
             });
 
+            $('.contract-length-slider, .contract-value-input').on('input', function () {
+                updateTotalContractCost();
+            });
 
             // Trigger the change event on page load to filter based on default values
             $('#userFilter').trigger('change');
-
-            // Initial call to limit checkboxes based on current selections
-            limitCheckboxes();
+            updateTotalContractCost();
         });
+
     </script>
 </body>
 

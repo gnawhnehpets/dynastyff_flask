@@ -54,7 +54,7 @@
                         <td>{{ result['team_name'] }}</td>
                         <!-- <td>{{ result['player_name'] }}</td> -->
                         <td>{% if (result['franchise_tag_used'] == true) %}
-                            <strong>{{ result['player_name'] }}</strong>
+                            <s>{{ result['player_name'] }}</s>
                             {% else %}
                             {{ result['player_name'] }}
                             {% endif %}
@@ -70,16 +70,24 @@
                             result['contract_y3_cost'] else ''}}</td>
                         <td>{{ result['contract_years_left'] }}</td>
                         <td style="text-align: center";>
-                            {% if (result['franchise_tag_eligible'] == false) %}
-                            <strong>---- ineligible ----</strong>
-                            {% elif (result['franchise_tag_allowed'] and result['team_name'] == current_username) or
-                            (result['franchise_tag_allowed'] and admin_status) %}
+                            {% if (result['rfa_nominated'] == true) %}
+                            ---- nominated ----
+                            {% elif (result['franchise_tag_used'] != true and 
+                                    result['rfa_nominated'] != true and
+                                    result['team_name'] == current_username) or
+                                    (result['franchise_tag_used'] != true and 
+                                    result['rfa_nominated'] != true and
+                                    admin_status) %}
                             <div class="checkbox-wrapper">
                                 <input type="checkbox" class="contract-checkbox" data-index="{{ loop.index0 }}"
                                     data-y0="{{ result['contract_y0_cost'] }}">
                             </div>
+                            {% elif (result['franchise_tag_allowed'] and result['franchise_tag_used'] == true ) %}
+                            ------ ineligible ------
                             {% elif (result['franchise_tag_used'] == true) %}
-                            <strong>------ tagged ------</strong>
+                            ------ tagged ------
+                            {% elif (result['rfa_nominated'] == true) %}
+                            ---- nominated ----
                             {% elif (result['team_name'] == current_username) %}
                             -- under contract --
                             {% else %}
@@ -100,7 +108,7 @@
 
     <script>
         function updateTotals() {
-            var totalY0 = 0, totalY1 = 0, totalY2 = 0;
+            var totalY0 = 0, totalY1 = 0, totalY2 = 0, totalY3 = 0;
 
             // Only sum values from visible rows after filtering
             $('#endSeasonRoster tr:visible').each(function () {
@@ -175,7 +183,7 @@
 
                 if (filteredIds.length > 0) {
                     $.ajax({
-                        url: '/updatefranchisetags',
+                        url: '/setrfa',
                         type: 'POST',
                         contentType: 'application/json',
                         data: JSON.stringify({ updates: draftUpdates, ids_to_update: filteredIds }),

@@ -348,29 +348,32 @@ def set_franchise_tag():
     users = {u['username']: u['admin_status'] for u in users_list}
 
     # roster = list(franchise_tag_collection.find({"contract": {"$exists": True}}, {
-    roster = list(franchise_tag_collection.find({"contract.franchise_tag_allowed": True}, {
-        "_id": 1,
-        "season": 1,
-        "player_name": 1,
-        "team_name": 1,
-        "position": "$metadata.position",
-        "contract_y0_cost": {"$ifNull": ["$contract.y0_cost", 0]},
-        "contract_y1_cost": {"$ifNull": ["$contract.y1_cost", 0]},
-        "contract_y2_cost": {"$ifNull": ["$contract.y2_cost", 0]},
-        "contract_y3_cost": {"$ifNull": ["$contract.y3_cost", 0]},
-        "contract_years_left": "$contract.contract_years_left",
-        "free_agent_before_season": "$contract.free_agent_before_season",
-        "franchise_tag_allowed": "$contract.franchise_tag_allowed",
-        "franchise_tag_used": "$contract.franchise_tag_used",
-        "franchise_tag_eligible": "$contract.franchise_tag_eligible"
-    }).sort({"team_name":1, "contract_y0_cost": -1}))
+    roster = list(franchise_tag_collection.find(
+        { "$or": [ {"contract.franchise_tag_allowed": True }, {"contract.franchise_tag_used": True}] }, 
+        {
+            "_id": 1,
+            "season": 1,
+            "player_name": 1,
+            "team_name": 1,
+            "position": "$metadata.position",
+            "contract_y0_cost": {"$ifNull": ["$contract.y0_cost", 0]},
+            "contract_y1_cost": {"$ifNull": ["$contract.y1_cost", 0]},
+            "contract_y2_cost": {"$ifNull": ["$contract.y2_cost", 0]},
+            "contract_y3_cost": {"$ifNull": ["$contract.y3_cost", 0]},
+            "contract_years_left": "$contract.contract_years_left",
+            "free_agent_before_season": "$contract.free_agent_before_season",
+            "franchise_tag_allowed": "$contract.franchise_tag_allowed",
+            "franchise_tag_used": "$contract.franchise_tag_used",
+            "franchise_tag_eligible": "$contract.franchise_tag_eligible",
+            "rfa_nominated": "$contract.rfa_nominated"
+        }).sort({"team_name":1, "contract_y0_cost": -1}))
 
     current_username = current_user.username
     return render_template("franchise_tags.html",
                            seasons=[upcoming_season-1],
                            users=users.keys(),
                            results=roster,
-                           title="Set franchise tag(s)",
+                           title="Set franchise tags",
                            latest_year=upcoming_season-1,
                            current_username=current_username,
                            admin_status=users.get(current_username))
@@ -407,37 +410,160 @@ def update_franchise_tags():
 
 @app.route("/nominaterfa")
 @login_required
-def nominate_rfa():
+def set_rfa():
     users_list = list(users_collection.find({"username": {"$exists": True}}))
     users = {u['username']: u['admin_status'] for u in users_list}
 
-    roster = list(franchise_tag_collection.find({"contract.contract_years_left": 0 }, {
-        "_id": 1,
-        "season": 1,
-        "player_name": 1,
-        "team_name": 1,
-        "position": "$metadata.position",
-        "contract_y0_cost": {"$ifNull": ["$contract.y0_cost", 0]},
-        "contract_y1_cost": {"$ifNull": ["$contract.y1_cost", 0]},
-        "contract_y2_cost": {"$ifNull": ["$contract.y2_cost", 0]},
-        "contract_y3_cost": {"$ifNull": ["$contract.y3_cost", 0]},
-        "contract_years_left": "$contract.contract_years_left",
-        "free_agent_before_season": "$contract.free_agent_before_season",
-        "franchise_tag_allowed": "$contract.franchise_tag_allowed",
-        "franchise_tag_used": "$contract.franchise_tag_used",
-        "franchise_tag_eligible": "$contract.franchise_tag_eligible"
-    }).sort({"team_name":1, "contract_y0_cost": -1}))
+    # roster = list(franchise_tag_collection.find({"contract": {"$exists": True}}, {
+    roster = list(franchise_tag_collection.find(
+        { "$or": [ {"contract.franchise_tag_allowed": True }, {"contract.franchise_tag_used": True}] }, 
+        {
+            "_id": 1,
+            "season": 1,
+            "player_name": 1,
+            "team_name": 1,
+            "position": "$metadata.position",
+            "contract_y0_cost": {"$ifNull": ["$contract.y0_cost", 0]},
+            "contract_y1_cost": {"$ifNull": ["$contract.y1_cost", 0]},
+            "contract_y2_cost": {"$ifNull": ["$contract.y2_cost", 0]},
+            "contract_y3_cost": {"$ifNull": ["$contract.y3_cost", 0]},
+            "contract_years_left": "$contract.contract_years_left",
+            "free_agent_before_season": "$contract.free_agent_before_season",
+            "franchise_tag_allowed": "$contract.franchise_tag_allowed",
+            "franchise_tag_used": "$contract.franchise_tag_used",
+            "franchise_tag_eligible": "$contract.franchise_tag_eligible",
+            "rfa_nominated": "$contract.rfa_nominated"
+        }).sort({"team_name":1, "contract_y0_cost": -1}))
 
     current_username = current_user.username
     return render_template("rfa_nominations.html",
                            seasons=[upcoming_season-1],
                            users=users.keys(),
                            results=roster,
-                           title="Set nominations",
+                           title="RFA nominations2",
                            latest_year=upcoming_season-1,
                            current_username=current_username,
                            admin_status=users.get(current_username))
 
+@app.route('/setrfa', methods=['POST'])
+@login_required
+def update_rfa_nominations():
+    data = request.json
+    updates = data.get('updates', [])
+    ids_to_update = data.get('ids_to_update', [])
+
+    # franchise_tag_collection.update_many(
+    #     {"_id": {"$in": [ObjectId(_id) for _id in ids_to_update]}},
+    #     {"$set": {"contract.franchise_tag_allowed": False}}
+    # )
+
+    # franchise_tag_collection.update_many({}, {"$set": {"collection_delete_lock": True}})
+    # create_roster_collection_2023()
+
+    for item in updates:
+        update_data = {}
+        if 'franchise_cost' in item and item['franchise_cost'] is not None:
+            update_data['contract.rfa_nominated'] = True
+            # update_data['contract.franchise_tag_allowed'] = False
+            # update_data['contract.franchise_tag_used'] = True
+            # update_data['contract.contract_years_left'] = 1
+
+        if update_data:
+            franchise_tag_collection.update_one(
+                {"_id": ObjectId(item["_id"]) },
+                {"$set": update_data}
+            )
+    return jsonify({"message": "Data updated successfully!"}), 200
+
+
+@app.route("/setrfacontracts")
+@login_required
+def set_rfa_contracts():
+    users_list = list(users_collection.find({"username": {"$exists": True}}))
+    users = {u['username']: u['admin_status'] for u in users_list}
+
+    # roster = list(franchise_tag_collection.find({"contract": {"$exists": True}}, {
+    roster = list(franchise_tag_collection.find(
+        { "contract.rfa_nominated": True }, 
+        {
+            "_id": 1,
+            "season": 1,
+            "player_name": 1,
+            "team_name": 1,
+            "position": "$metadata.position",
+            "contract_y0_cost": {"$ifNull": ["$contract.y0_cost", 0]},
+            "contract_y1_cost": {"$ifNull": ["$contract.y1_cost", 0]},
+            "contract_y2_cost": {"$ifNull": ["$contract.y2_cost", 0]},
+            "contract_y3_cost": {"$ifNull": ["$contract.y3_cost", 0]},
+            "contract_years_left": "$contract.contract_years_left",
+            "free_agent_before_season": "$contract.free_agent_before_season",
+            "franchise_tag_allowed": "$contract.franchise_tag_allowed",
+            "franchise_tag_used": "$contract.franchise_tag_used",
+            "franchise_tag_eligible": "$contract.franchise_tag_eligible"
+        }).sort({"team_name":1, "contract_y0_cost": -1}))
+
+    current_username = current_user.username
+    return render_template("rfa_contracts.html",
+                           seasons=[upcoming_season-1],
+                           users=users.keys(),
+                           results=roster,
+                           title="Set RFA contracts",
+                           latest_year=upcoming_season-1,
+                           current_username=current_username,
+                           admin_status=users.get(current_username))
+
+
+@app.route('/updaterfacontracts', methods=['POST'])
+@login_required
+def update_rfa_contracts():
+    data = request.json
+    updates = data.get('updates', [])
+    print(updates)
+    for item in updates:
+        print(item)
+        update_data = {}
+        contract_length = int(item['contract_length'])
+        contract_value = int(item['contract_value'])
+
+        if contract_length >= 1:
+            update_data['contract.y1_cost'] = contract_value
+            update_data['contract.contract_years_left'] = 1
+        if contract_length >= 2:
+            update_data['contract.y2_cost'] = contract_value
+            update_data['contract.contract_years_left'] = 2
+        if contract_length >= 3:
+            update_data['contract.y3_cost'] = contract_value
+            update_data['contract.contract_years_left'] = 3
+
+        print(f"length: {contract_length}, value: {contract_value}")
+        print(update_data)
+        if update_data:
+            franchise_tag_collection.update_one(
+                {"_id": ObjectId(item["_id"])},
+                {"$unset": {"contract.y1_cost": 1, "contract.y2_cost": 1, "contract.y3_cost": 1}}
+            )
+            franchise_tag_collection.update_one(
+                {"_id": ObjectId(item["_id"])},
+                {"$set": update_data}
+            )
+    return jsonify({"message": "Data updated successfully!"}), 200
+
+    # data = request.json
+    # updates = data.get('updates', [])
+
+    # for item in updates:
+    #     update_data = {}
+    #     if 'franchise_cost' in item and item['franchise_cost'] is not None:
+    #         update_data['contract.y1_cost'] = item['franchise_cost']
+    #         update_data['contract.franchise_tag_allowed'] = False
+    #         update_data['contract.franchise_tag_used'] = True
+    #         update_data['contract.contract_years_left'] = 1
+
+    #     if update_data:
+    #         franchise_tag_collection.update_one(
+    #             {"_id": ObjectId(item["_id"]) },
+    #             {"$set": update_data}
+    #         )
 
 @app.route("/managetaxisquad")
 @login_required
