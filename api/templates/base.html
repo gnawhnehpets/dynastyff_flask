@@ -13,31 +13,72 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
     <!-- Favicon -->
-    <!-- <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}"> -->
     <link rel="icon" type="image/png" href="{{ url_for('static', filename='logo.png') }}">
 
-
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <!-- <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
-    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/main.css') }}"> -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-    <!-- <link href="http://getbootstrap.com/dist/css/bootstrap.min.css" rel="stylesheet"> -->
-    <!-- <link href="http://getbootstrap.com/examples/jumbotron-narrow/jumbotron-narrow.css" rel="stylesheet"> -->
     <link href="../static/chota/chota.css" rel="stylesheet">
+    <style>
+        .hamburger {
+            display: block;
+            cursor: pointer;
+            padding: 30px;
+        }
+
+        .hamburger div {
+            width: 25px;
+            height: 3px;
+            background-color: #333;
+            margin: 5px 20px;
+        }
+
+        .nav-menu {
+            display: none;
+            position: absolute;
+            left: 20px;
+            top: 50px;
+            background-color: white;
+            width: 300px;
+            border: 1px solid #ccc;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+            padding: 20px;
+        }
+
+        .nav-menu a {
+            display: block;
+            padding: 20px;
+            text-decoration: none;
+            color: #333;
+        }
+
+        .nav-menu a:hover {
+            background-color: #f1f1f1;
+        }
+    </style>
 
     {% if current_user.is_authenticated %}
-    <hr>
-    <div class="row mb-3">
-
-        <nav class="nav-center">
-            <p><a href="/home">Home</a> | <a href="/managetaxisquad">Manage taxi squad</a> | <a
-                    href="/setfranchisetags">Set FT</a> | <a href="/nominaterfa">Nominate RFA</a> | <a href="/setrfacontracts">Set RFA contracts</a> | <a href="/setcontracts">Set contracts</a> | 
-                    <a href="/predraft">Predraft</a> | <a href="/draftresults">Draft results</a> | <a href="/calculator">Trade calculator</a> | <a
-                    href="/logout">Logout</a> </p>
-        </nav>
-
+    <div class="hamburger">
+        <div></div>
+        <div></div>
+        <div></div>
     </div>
-    <hr>
+    <div class="nav-menu">
+        <p><a href="/home">Home</a></p>
+        <hr>
+        <p><u>preseason activities</u><br />
+            <a href="/managetaxisquad">Manage taxi squad</a><a href="/setfranchisetags">Set FT</a><a
+                href="/nominaterfa">Nominate RFA</a><a href="/setrfacontracts">Set RFA contracts</a><a
+                href="/setcontracts">Set contracts</a>
+        </p>
+        <hr>
+        <p>
+            <u>resources</u></p>
+            <p>
+            <a href="/predraft">Predraft</a><a href="/draftresults">Draft results</a><a
+                href="/calculator">Trade calculator</a><a href="/logout">Logout</a>
+        </p>
+    </div>
     {% endif %}
 </head>
 
@@ -47,7 +88,6 @@
     {% endblock %}
 </body>
 
-
 <footer>
     {% if current_user.is_authenticated %}
     <div class="container mt-5">
@@ -55,10 +95,17 @@
         <nav class="nav-left">
             <p><a href="/logout">Logout</a> </p>
         </nav>
-
         Logged in as {{ current_user.username }}.
     </div>
     {% endif %}
 </footer>
+
+<script>
+    $(document).ready(function () {
+        $('.hamburger').on('click', function () {
+            $('.nav-menu').toggle();
+        });
+    });
+</script>
 
 </html>
