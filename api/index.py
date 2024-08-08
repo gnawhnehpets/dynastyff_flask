@@ -440,7 +440,7 @@ def set_rfa():
                            seasons=[upcoming_season-1],
                            users=users.keys(),
                            results=roster,
-                           title="RFA nominations2",
+                           title="RFA nominations",
                            latest_year=upcoming_season-1,
                            current_username=current_username,
                            admin_status=users.get(current_username))
