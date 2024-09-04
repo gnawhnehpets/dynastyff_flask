@@ -3,24 +3,21 @@
 
 <body>
     <div class="container mt-5">
-        <div class="row mb-3">
-            <div class="col-2">
-                Team:
-                <select id="userFilter" class="form-control">
-                    <option value="">-- show all --</option>
-                    {% for user in users %}
-                    <option value="{{ user }}" {{ 'selected' if user==current_username }}>{{ user }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-        </div>
+        <p><h3>{{ title }}</h3></p>
+        <hr>
         <form id="updateForm">
-            <hr>
             <table class="table">
                 <thead style="background-color: white;">
                     <tr id="totalsRow">
-                        <td colspan="2">
-                            <h3>{{ title }}</h3>
+                        <td>Filter:</td>
+                        <td>
+                            <select id="userFilter" class="form-control">
+                                <option value="">-- show all --</option>
+                                {% for user in users %}
+                                <option value="{{ user }}" {{ 'selected' if user==current_username }}>{{ user }}
+                                </option>
+                                {% endfor %}
+                            </select>
                         </td>
                         <td colspan="2" style="text-align:right">Contract totals</td>
                         <td id="totalY0">0</td>
@@ -68,8 +65,8 @@
                         <td id="y3_{{ loop.index0 }}">{{ "%.0f"|format(result['contract_y3_cost']) if
                             result['contract_y3_cost'] else ''}}</td>
                         <td>
-                            <input type="range" min=1 max=3 value="{{ result['contract_years_left'] or 1 }}" class="contract-length-slider"
-                                data-index="{{ loop.index0 }}">
+                            <input type="range" min=1 max=3 value="{{ result['contract_years_left'] or 1 }}"
+                                class="contract-length-slider" data-index="{{ loop.index0 }}">
                         </td>
                         <td>
                             <input type="number" class="form-control contract-value-input"

@@ -3,28 +3,22 @@
 
 <body>
     <div class="container mt-5">
-        <div class="row mb-3">
-            <div class="col-2">
-                Team:
-                <select id="userFilter" class="form-control">
-                    <option value="">-- show all --</option>
-                    {% for user in users %}
-                    <option value="{{ user }}" {{ 'selected' if user==current_username }}>{{ user }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-        </div>
+        <p><h3>{{ title }}</h3></p>
+        <hr>
         <form id="updateForm">
             <table class="table">
                 <thead style="background-color: white;">
                     <tr id="totalsRow">
-                        <td colspan="2">
-                            <h3>{{ title }}</h3>
+                        <td>Filter:</td>
+                        <td>
+                            <select id="userFilter" class="form-control">
+                                <option value="">-- show all --</option>
+                                {% for user in users %}
+                                <option value="{{ user }}" {{ 'selected' if user==current_username }}>{{ user }}
+                                </option>
+                                {% endfor %}
+                            </select>
                         </td>
-                        <!-- <td colspan="2" style="text-align:right">Contract totals</td>
-                        <td id="totalY0">0</td>
-                        <td id="totalY1">0</td>
-                         -->
                         <td></td>
                         <td></td>
                         <td></td>
@@ -65,7 +59,7 @@
                             result['contract_y2_cost'] else ''}}</td>
                         <td id="y3_{{ loop.index0 }}">{{ "%.0f"|format(result['contract_y3_cost']) if
                             result['contract_y3_cost'] else ''}}</td>
-                            
+
                         <td>{{ result['free_agent_before_season'] }}</td>
                         <td>
                             {% if (result['team_name'] == current_username and result['taxi_designation']) or

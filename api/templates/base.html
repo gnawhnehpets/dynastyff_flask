@@ -50,6 +50,7 @@
             padding: 20px;
             text-decoration: none;
             color: #333;
+            transition: all 0.3s ease-out;
         }
 
         .nav-menu a:hover {
@@ -66,17 +67,24 @@
     <div class="nav-menu">
         <p><a href="/home">Home</a></p>
         <hr>
-        <p><u>preseason activities</u><br />
-            <a href="/managetaxisquad">Manage taxi squad</a><a href="/setfranchisetags">Set FT</a><a
-                href="/nominaterfa">Nominate RFA</a><a href="/setrfacontracts">Set RFA contracts</a><a
-                href="/setcontracts">Set contracts</a>
+        <p><u>pre-draft</u><br />
+            <a href="/managetaxisquad">Manage taxi squad</a>
+            <a href="/setfranchisetags">Set FT</a>
+            <a href="/nominaterfa">Nominate RFA</a>
+            <a href="/setrfacontracts">Set RFA contracts</a>
+            <a href="/predraft">Auction budget</a>
+        </p>
+        <hr>
+        <p><u>post-draft</u><br />
+            <a href="/setcontracts">Set contracts</a>
         </p>
         <hr>
         <p>
-            <u>resources</u></p>
-            <p>
-            <a href="/predraft">Predraft</a><a href="/draftresults">Draft results</a><a
-                href="/calculator">Trade calculator</a><a href="/logout">Logout</a>
+            <u>resources</u>
+        </p>
+        <p>
+            <a href="/draftresults">Draft results</a>
+            <a href="/calculator">Trade calculator</a><a href="/logout">Logout</a>
         </p>
     </div>
     {% endif %}

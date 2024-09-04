@@ -5,10 +5,11 @@
     <div class="container mt-5">
         <div class="row mb-3">
             <div class="col-12">
-                <h1>{{ title }}</h1>
+                <h2>{{ title }}</h2>
+                <hr class="double">
             </div>
         </div>
-
+        
         {% for user in users %}
         <div class="owner-section">
             <form id="updateForm-{{ user }}">

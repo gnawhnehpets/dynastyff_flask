@@ -3,24 +3,21 @@
 
 <body>
     <div class="container mt-5">
-        <div class="row mb-3">
-            <div class="col-2">
-                Team:
-                <select id="userFilter" class="form-control">
-                    <option value="">-- show all --</option>
-                    {% for user in users %}
-                    <option value="{{ user }}" {{ 'selected' if user==current_username }}>{{ user }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-        </div>
+        <p><h3>{{ title }}</h3></p>
+        <hr>
         <form id="updateForm">
-            <hr>
             <table class="table">
                 <thead style="background-color: white;">
                     <tr id="totalsRow">
-                        <td colspan="2">
-                            <h3>{{ title }}</h3>
+                        <td>Filter:</td>
+                        <td>
+                            <select id="userFilter" class="form-control">
+                                <option value="">-- show all --</option>
+                                {% for user in users %}
+                                <option value="{{ user }}" {{ 'selected' if user==current_username }}>{{ user }}
+                                </option>
+                                {% endfor %}
+                            </select>
                         </td>
                         <td colspan="2" style="text-align:right">Contract totals</td>
                         <td id="totalY0">0</td>
@@ -42,7 +39,7 @@
                         <th>{{ latest_year+2 }}</th>
                         <th>{{ latest_year+3 }}</th>
                         <!-- <th>FA in Y</th> -->
-                        <th>contract years left</th> 
+                        <th>contract years left</th>
                         <th>contract</th>
                     </tr>
                 </thead>
@@ -69,17 +66,17 @@
                         <td id="y3_{{ loop.index0 }}">{{ "%.0f"|format(result['contract_y3_cost']) if
                             result['contract_y3_cost'] else ''}}</td>
                         <td>{{ result['contract_years_left'] }}</td>
-                        <td style="text-align: center";>
+                        <td style="text-align: center" ;>
                             {% if (result['franchise_tag_eligible'] == false) %}
                             <strong>---- ineligible ----</strong>
-                            {% elif (result['franchise_tag_allowed'] and 
-                                    result['franchise_tag_used'] != true and 
-                                    result['rfa_nominated'] != true and
-                                    result['team_name'] == current_username) 
-                                or (result['franchise_tag_allowed'] and 
-                                    result['franchise_tag_used'] != true and 
-                                    result['rfa_nominated'] != true and
-                                    admin_status) %}
+                            {% elif (result['franchise_tag_allowed'] and
+                            result['franchise_tag_used'] != true and
+                            result['rfa_nominated'] != true and
+                            result['team_name'] == current_username)
+                            or (result['franchise_tag_allowed'] and
+                            result['franchise_tag_used'] != true and
+                            result['rfa_nominated'] != true and
+                            admin_status) %}
                             <div class="checkbox-wrapper">
                                 <input type="checkbox" class="contract-checkbox" data-index="{{ loop.index0 }}"
                                     data-y0="{{ result['contract_y0_cost'] }}">
